@@ -13,7 +13,7 @@ TEMPLATE = app
 
 CONFIG += c++11
 
-VERSION = 1.0.0
+VERSION = 0.1.0
 DEFINES += VERSION=\\\"$$VERSION\\\"
 
 CONFIG(release, debug|release): DESTDIR = $$PWD/../../../../Applications
@@ -50,15 +50,15 @@ unix {
 
     LIBS += -ltiff -lxml2
 
-    INCLUDEPATH += $$PWD/../../../external/src/linalg
+    INCLUDEPATH += $$PWD/../../../../imagingsuite/external/src/linalg
 }
 
 win32 {
     contains(QMAKE_HOST.arch, x86_64):{
         QMAKE_LFLAGS += /MACHINE:X64
     }
-    INCLUDEPATH += $$PWD/../../../external/src/linalg $$PWD/../../../external/include $$PWD/../../../external/include/cfitsio $$PWD/../../../../external/include/libxml2
-    QMAKE_LIBDIR += $$_PRO_FILE_PWD_/../../../external/lib64
+    INCLUDEPATH += $$PWD/../../../../imagingsuite/external/src/linalg $$PWD/../../../../imagingsuite/external/include $$PWD/../../../../imagingsuite/external/include/cfitsio $$PWD/../../../../imagingsuite/external/include/libxml2
+    QMAKE_LIBDIR += $$_PRO_FILE_PWD_/../../../../imagingsuite/external/lib64
 
     LIBS += -llibxml2_dll -llibtiff -lcfitsio
     QMAKE_CXXFLAGS += /openmp /O2
@@ -89,32 +89,32 @@ else:CONFIG(debug, debug|release): LIBS += -L$$PWD/../../../../lib/debug
 
 LIBS += -lkipl -lQtAddons -lImagingAlgorithms -lImagingQAAlgorithms -lReaderConfig -lReaderGUI -lQtImaging
 
-INCLUDEPATH += $$PWD/../../../core/kipl/kipl/include
-DEPENDPATH += $$PWD/../../../core/kipl/kipl/include
+INCLUDEPATH += $$PWD/../../../../imagingsuite/core/kipl/kipl/include
+DEPENDPATH += $$PWD/../../../../imagingsuite/core/kipl/kipl/include
 
-INCLUDEPATH += $$PWD/../../../gui/qt/QtModuleConfigure
-DEPENDPATH += $$PWD/../../../gui/qt/QtModuleConfigure
+INCLUDEPATH += $$PWD/../../../../imagingsuite/gui/qt/QtModuleConfigure
+DEPENDPATH += $$PWD/../../../../imagingsuite/gui/qt/QtModuleConfigure
 
-INCLUDEPATH += $$PWD/../../../gui/qt/QtImaging
-DEPENDPATH += $$PWD/../../../gui/qt/QtImaging
+INCLUDEPATH += $$PWD/../../../../imagingsuite/gui/qt/QtImaging
+DEPENDPATH += $$PWD/../../../../imagingsuite/gui/qt/QtImaging
 
-INCLUDEPATH += $$PWD/../../../gui/qt/QtAddons
-DEPENDPATH += $$PWD/../../../gui/qt/QtAddons
+INCLUDEPATH += $$PWD/../../../../imagingsuite/gui/qt/QtAddons
+DEPENDPATH += $$PWD/../../../../imagingsuite/gui/qt/QtAddons
 
-INCLUDEPATH += $$PWD/../../../frameworks/tomography/Framework/ReconFramework/include
-DEPENDPATH += $$PWD/../../../frameworks/tomography/Framework/ReconFramework/src
+INCLUDEPATH += $$PWD/../../../../imagingsuite/frameworks/tomography/Framework/ReconFramework/include
+DEPENDPATH += $$PWD/../../../../imagingsuite/frameworks/tomography/Framework/ReconFramework/src
 
-INCLUDEPATH += $$PWD/../../../core/modules/ModuleConfig/include
-DEPENDPATH += $$PWD/../../../core/modules/ModuleConfig/include
+INCLUDEPATH += $$PWD/../../../../imagingsuite/core/modules/ModuleConfig/include
+DEPENDPATH += $$PWD/../../../../imagingsuite/core/modules/ModuleConfig/include
 
-INCLUDEPATH += $$PWD/../../../core/modules/ReaderConfig/
-DEPENDPATH += $$PWD/../../../core/modules/ReaderConfig/
+INCLUDEPATH += $$PWD/../../../../imagingsuite/core/modules/ReaderConfig/
+DEPENDPATH += $$PWD/../../../../imagingsuite/core/modules/ReaderConfig/
 
-INCLUDEPATH += $$PWD/../../../core/modules/ReaderGUI/
-DEPENDPATH += $$PWD/../../../core/modules/ReaderGUI/
+INCLUDEPATH += $$PWD/../../../../imagingsuite/core/modules/ReaderGUI/
+DEPENDPATH += $$PWD/../../../../imagingsuite/core/modules/ReaderGUI/
 
-INCLUDEPATH += $$PWD/../../../core/algorithms/ImagingAlgorithms/include
-DEPENDPATH += $$PWD/../../../core/algorithms/ImagingAlgorithms/src
+INCLUDEPATH += $$PWD/../../../../imagingsuite/core/algorithms/ImagingAlgorithms/include
+DEPENDPATH += $$PWD/../../../../imagingsuite/core/algorithms/ImagingAlgorithms/src
 
-INCLUDEPATH += $$PWD/../../../core/algorithms/ImagingQAAlgorithms
-DEPENDPATH += $$PWD/../../../core/algorithms/ImagingQAAlgorithms
+INCLUDEPATH += $$PWD/../../../../imagingsuite/core/algorithms/ImagingQAAlgorithms
+DEPENDPATH += $$PWD/../../../../imagingsuite/core/algorithms/ImagingQAAlgorithms
