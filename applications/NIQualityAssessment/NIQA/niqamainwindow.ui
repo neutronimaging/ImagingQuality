@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1172</width>
-    <height>778</height>
+    <height>767</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,7 +18,7 @@
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>2</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="tab_ContrastAnalysis">
        <attribute name="title">
@@ -192,7 +192,7 @@
                <x>0</x>
                <y>0</y>
                <width>360</width>
-               <height>191</height>
+               <height>228</height>
               </rect>
              </property>
              <layout class="QHBoxLayout" name="horizontalLayout_20">
@@ -314,28 +314,7 @@
             <item>
              <widget class="QPushButton" name="button_addEdgeFile">
               <property name="text">
-               <string>Add</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="button_deleteEdgeFile">
-              <property name="text">
-               <string>Delete</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="button_get2Dedges">
-              <property name="text">
-               <string>Analyze edges</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="button_estimateCollimation">
-              <property name="text">
-               <string>Estimate collimation</string>
+               <string>Add edge file</string>
               </property>
              </widget>
             </item>
@@ -353,9 +332,9 @@
              </spacer>
             </item>
             <item>
-             <widget class="QPushButton" name="pushButton_3">
+             <widget class="QPushButton" name="button_deleteEdgeFile">
               <property name="text">
-               <string>Preview</string>
+               <string>Delete file</string>
               </property>
              </widget>
             </item>
@@ -400,6 +379,20 @@
               </property>
              </spacer>
             </item>
+            <item>
+             <widget class="QPushButton" name="button_get2Dedges">
+              <property name="text">
+               <string>Analyze edges</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="button_estimateCollimation">
+              <property name="text">
+               <string>Estimate collimation</string>
+              </property>
+             </widget>
+            </item>
            </layout>
           </item>
           <item>
@@ -415,7 +408,7 @@
               <property name="minimumSize">
                <size>
                 <width>0</width>
-                <height>150</height>
+                <height>260</height>
                </size>
               </property>
               <property name="title">
@@ -436,7 +429,7 @@
                  <property name="minimumSize">
                   <size>
                    <width>0</width>
-                   <height>57</height>
+                   <height>70</height>
                   </size>
                  </property>
                 </widget>
@@ -452,7 +445,7 @@
                  <property name="minimumSize">
                   <size>
                    <width>0</width>
-                   <height>57</height>
+                   <height>70</height>
                   </size>
                  </property>
                 </widget>
@@ -461,28 +454,16 @@
              </widget>
             </item>
             <item>
-             <widget class="QGroupBox" name="groupBox_2DCrop">
-              <property name="title">
-               <string>Crop images</string>
-              </property>
-              <property name="checkable">
+             <widget class="QtAddons::uxROIWidget" name="widget_roiEdge2D" native="true">
+              <property name="enabled">
                <bool>true</bool>
               </property>
-              <layout class="QHBoxLayout" name="horizontalLayout_14">
-               <item>
-                <widget class="QtAddons::uxROIWidget" name="widget_roiEdge2D" native="true">
-                 <property name="enabled">
-                  <bool>true</bool>
-                 </property>
-                 <property name="minimumSize">
-                  <size>
-                   <width>200</width>
-                   <height>123</height>
-                  </size>
-                 </property>
-                </widget>
-               </item>
-              </layout>
+              <property name="minimumSize">
+               <size>
+                <width>200</width>
+                <height>142</height>
+               </size>
+              </property>
              </widget>
             </item>
            </layout>
@@ -497,13 +478,19 @@
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>596</width>
-               <height>103</height>
+               <width>588</width>
+               <height>135</height>
               </rect>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_18">
               <item>
                <widget class="QPlainTextEdit" name="plainTextEdit_2">
+                <property name="verticalScrollBarPolicy">
+                 <enum>Qt::ScrollBarAlwaysOn</enum>
+                </property>
+                <property name="readOnly">
+                 <bool>true</bool>
+                </property>
                 <property name="plainText">
                  <string>1. Select edge images by clicking on the Add button. You can select multiple images in the dialog. For each image you will be prompted for the distance from scintillator.
 2. Set the pixel size. The pixel size button helps you to measure the pixel size.
@@ -790,7 +777,7 @@
                  <x>0</x>
                  <y>0</y>
                  <width>350</width>
-                 <height>214</height>
+                 <height>232</height>
                 </rect>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_22">
@@ -939,25 +926,13 @@
              </widget>
             </item>
             <item>
-             <widget class="QGroupBox" name="groupBox_2">
-              <property name="title">
-               <string>Crop</string>
+             <widget class="QtAddons::uxROIWidget" name="widget_roi3DBalls" native="true">
+              <property name="minimumSize">
+               <size>
+                <width>200</width>
+                <height>123</height>
+               </size>
               </property>
-              <property name="checkable">
-               <bool>true</bool>
-              </property>
-              <layout class="QHBoxLayout" name="horizontalLayout_19">
-               <item>
-                <widget class="QtAddons::uxROIWidget" name="widget_roi3DBalls" native="true">
-                 <property name="minimumSize">
-                  <size>
-                   <width>200</width>
-                   <height>123</height>
-                  </size>
-                 </property>
-                </widget>
-               </item>
-              </layout>
              </widget>
             </item>
             <item>
@@ -1281,30 +1256,6 @@
       </widget>
      </widget>
     </item>
-    <item>
-     <layout class="QHBoxLayout" name="horizontalLayout_12">
-      <item>
-       <spacer name="horizontalSpacer_2">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>40</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-      <item>
-       <widget class="QPushButton" name="pushButton_logging">
-        <property name="text">
-         <string>Logging</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </item>
    </layout>
   </widget>
   <widget class="QMenuBar" name="menuBar">
@@ -1333,6 +1284,8 @@
     <addaction name="actionAbout"/>
     <addaction name="actionUser_manual"/>
     <addaction name="actionReport_a_bug"/>
+    <addaction name="separator"/>
+    <addaction name="actionLogging"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuHelp"/>
@@ -1384,6 +1337,11 @@
   <action name="actionReport_a_bug">
    <property name="text">
     <string>Report a bug</string>
+   </property>
+  </action>
+  <action name="actionLogging">
+   <property name="text">
+    <string>Logging</string>
    </property>
   </action>
  </widget>
