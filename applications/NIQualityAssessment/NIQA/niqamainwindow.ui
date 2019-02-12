@@ -18,7 +18,7 @@
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="tab_ContrastAnalysis">
        <attribute name="title">
@@ -124,8 +124,11 @@
                  <property name="decimals">
                   <number>4</number>
                  </property>
+                 <property name="minimum">
+                  <double>-99999.000000000000000</double>
+                 </property>
                  <property name="maximum">
-                  <double>9999.000000000000000</double>
+                  <double>99999.000000000000000</double>
                  </property>
                  <property name="value">
                   <double>0.000000000000000</double>
@@ -153,6 +156,9 @@
                  </property>
                  <property name="decimals">
                   <number>4</number>
+                 </property>
+                 <property name="minimum">
+                  <double>-99999.000000000000000</double>
                  </property>
                  <property name="maximum">
                   <double>99999.000000000000000</double>
