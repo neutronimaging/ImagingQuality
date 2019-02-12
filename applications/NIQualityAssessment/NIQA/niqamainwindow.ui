@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1170</width>
-    <height>778</height>
+    <width>1172</width>
+    <height>767</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,7 +18,7 @@
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>4</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="tab_ContrastAnalysis">
        <attribute name="title">
@@ -175,17 +175,40 @@
            </widget>
           </item>
           <item>
-           <spacer name="verticalSpacer_12">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
+           <widget class="QLabel" name="label_10">
+            <property name="text">
+             <string>Instructions</string>
             </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>40</height>
-             </size>
+           </widget>
+          </item>
+          <item>
+           <widget class="QScrollArea" name="scrollArea">
+            <property name="widgetResizable">
+             <bool>true</bool>
             </property>
-           </spacer>
+            <widget class="QWidget" name="scrollAreaWidgetContents">
+             <property name="geometry">
+              <rect>
+               <x>0</x>
+               <y>0</y>
+               <width>360</width>
+               <height>228</height>
+              </rect>
+             </property>
+             <layout class="QHBoxLayout" name="horizontalLayout_20">
+              <item>
+               <widget class="QPlainTextEdit" name="plainTextEdit">
+                <property name="plainText">
+                 <string>1. Select images. Click browse and select a slice of the reconstrcuted contrast sample. Select an interval of slices where the are holes filled on all slices. Click the load button.
+2. Set pixel size. You can either use a know size or click pixel size button. In the dialog you can load an image of a feature with known size and mark a box over two edges.
+3. You may want to scale the gray levels to attenuation coefficients. This can be done by using Gray level mapping.
+4. Press analyze and wait. This will take a little while depending on how many slices you have chosen.</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </widget>
           </item>
          </layout>
         </item>
@@ -291,28 +314,7 @@
             <item>
              <widget class="QPushButton" name="button_addEdgeFile">
               <property name="text">
-               <string>Add</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="button_deleteEdgeFile">
-              <property name="text">
-               <string>Delete</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="button_get2Dedges">
-              <property name="text">
-               <string>Analyze edges</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="button_estimateCollimation">
-              <property name="text">
-               <string>Estimate collimation</string>
+               <string>Add edge file</string>
               </property>
              </widget>
             </item>
@@ -330,9 +332,9 @@
              </spacer>
             </item>
             <item>
-             <widget class="QPushButton" name="pushButton_3">
+             <widget class="QPushButton" name="button_deleteEdgeFile">
               <property name="text">
-               <string>Preview</string>
+               <string>Delete file</string>
               </property>
              </widget>
             </item>
@@ -377,6 +379,20 @@
               </property>
              </spacer>
             </item>
+            <item>
+             <widget class="QPushButton" name="button_get2Dedges">
+              <property name="text">
+               <string>Analyze edges</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="button_estimateCollimation">
+              <property name="text">
+               <string>Estimate collimation</string>
+              </property>
+             </widget>
+            </item>
            </layout>
           </item>
           <item>
@@ -392,7 +408,7 @@
               <property name="minimumSize">
                <size>
                 <width>0</width>
-                <height>150</height>
+                <height>260</height>
                </size>
               </property>
               <property name="title">
@@ -413,7 +429,7 @@
                  <property name="minimumSize">
                   <size>
                    <width>0</width>
-                   <height>57</height>
+                   <height>70</height>
                   </size>
                  </property>
                 </widget>
@@ -429,7 +445,7 @@
                  <property name="minimumSize">
                   <size>
                    <width>0</width>
-                   <height>57</height>
+                   <height>70</height>
                   </size>
                  </property>
                 </widget>
@@ -438,44 +454,58 @@
              </widget>
             </item>
             <item>
-             <widget class="QGroupBox" name="groupBox_2DCrop">
-              <property name="title">
-               <string>Crop images</string>
-              </property>
-              <property name="checkable">
+             <widget class="QtAddons::uxROIWidget" name="widget_roiEdge2D" native="true">
+              <property name="enabled">
                <bool>true</bool>
               </property>
-              <layout class="QHBoxLayout" name="horizontalLayout_14">
-               <item>
-                <widget class="QtAddons::uxROIWidget" name="widget_roiEdge2D" native="true">
-                 <property name="enabled">
-                  <bool>true</bool>
-                 </property>
-                 <property name="minimumSize">
-                  <size>
-                   <width>200</width>
-                   <height>123</height>
-                  </size>
-                 </property>
-                </widget>
-               </item>
-              </layout>
+              <property name="minimumSize">
+               <size>
+                <width>200</width>
+                <height>142</height>
+               </size>
+              </property>
              </widget>
             </item>
            </layout>
           </item>
           <item>
-           <spacer name="verticalSpacer_10">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
+           <widget class="QScrollArea" name="scrollArea_2">
+            <property name="widgetResizable">
+             <bool>true</bool>
             </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>40</height>
-             </size>
-            </property>
-           </spacer>
+            <widget class="QWidget" name="scrollAreaWidgetContents_2">
+             <property name="geometry">
+              <rect>
+               <x>0</x>
+               <y>0</y>
+               <width>588</width>
+               <height>135</height>
+              </rect>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_18">
+              <item>
+               <widget class="QPlainTextEdit" name="plainTextEdit_2">
+                <property name="verticalScrollBarPolicy">
+                 <enum>Qt::ScrollBarAlwaysOn</enum>
+                </property>
+                <property name="readOnly">
+                 <bool>true</bool>
+                </property>
+                <property name="plainText">
+                 <string>1. Select edge images by clicking on the Add button. You can select multiple images in the dialog. For each image you will be prompted for the distance from scintillator.
+2. Set the pixel size. The pixel size button helps you to measure the pixel size.
+3. Normalization is currently not implemented.
+4. Cropping may make sense to make it easier to find the edge.
+5.  Inspect the images by clicking on them in the list and click the preview button.
+6. Now you are ready to analyze, click the analyze edges button.
+7. The plots appear and you can choose between edge or edge detivative. Edge derivative also computes a Gaussian fit.
+8. Selecting the collimation estimate plots all FWHM values as function of the distance to the detector. The L/D estimate is not yet implemented.</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </widget>
           </item>
          </layout>
         </item>
@@ -488,7 +518,7 @@
            </size>
           </property>
           <property name="currentIndex">
-           <number>1</number>
+           <number>0</number>
           </property>
           <widget class="QWidget" name="tab_preview">
            <attribute name="title">
@@ -737,17 +767,33 @@
              </layout>
             </item>
             <item>
-             <spacer name="verticalSpacer_2">
-              <property name="orientation">
-               <enum>Qt::Vertical</enum>
+             <widget class="QScrollArea" name="scrollArea_3">
+              <property name="widgetResizable">
+               <bool>true</bool>
               </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>20</width>
-                <height>40</height>
-               </size>
-              </property>
-             </spacer>
+              <widget class="QWidget" name="scrollAreaWidgetContents_3">
+               <property name="geometry">
+                <rect>
+                 <x>0</x>
+                 <y>0</y>
+                 <width>350</width>
+                 <height>232</height>
+                </rect>
+               </property>
+               <layout class="QVBoxLayout" name="verticalLayout_22">
+                <item>
+                 <widget class="QPlainTextEdit" name="plainTextEdit_3">
+                  <property name="plainText">
+                   <string>1. Browse for the reconstructed data from the large Cu ball, select one slice. The number of slices will be automatically determined. Make sure that the entire ball is in the selected slices and also that there are no other items in the slices.
+2. Set the pixel size.
+3. Click the load button and the volume is loaded and analyzed.
+</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+             </widget>
             </item>
            </layout>
           </item>
@@ -880,13 +926,6 @@
              </widget>
             </item>
             <item>
-             <widget class="QCheckBox" name="check_3DBallsCrop">
-              <property name="text">
-               <string>Crop</string>
-              </property>
-             </widget>
-            </item>
-            <item>
              <widget class="QtAddons::uxROIWidget" name="widget_roi3DBalls" native="true">
               <property name="minimumSize">
                <size>
@@ -904,12 +943,26 @@
              </widget>
             </item>
             <item>
+             <widget class="QLabel" name="label_5">
+              <property name="text">
+               <string>Mark measurement ROIs</string>
+              </property>
+             </widget>
+            </item>
+            <item>
              <widget class="QtAddons::ROIManager" name="widget_bundleroi" native="true">
               <property name="minimumSize">
                <size>
                 <width>0</width>
                 <height>125</height>
                </size>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="button_AnalyzePacking">
+              <property name="text">
+               <string>Analyze</string>
               </property>
              </widget>
             </item>
@@ -925,13 +978,6 @@
                </size>
               </property>
              </spacer>
-            </item>
-            <item>
-             <widget class="QPushButton" name="button_AnalyzePacking">
-              <property name="text">
-               <string>Analyze</string>
-              </property>
-             </widget>
             </item>
            </layout>
           </item>
@@ -1210,30 +1256,6 @@
       </widget>
      </widget>
     </item>
-    <item>
-     <layout class="QHBoxLayout" name="horizontalLayout_12">
-      <item>
-       <spacer name="horizontalSpacer_2">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>40</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
-      <item>
-       <widget class="QPushButton" name="pushButton_logging">
-        <property name="text">
-         <string>Logging</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </item>
    </layout>
   </widget>
   <widget class="QMenuBar" name="menuBar">
@@ -1241,7 +1263,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1170</width>
+     <width>1172</width>
      <height>22</height>
     </rect>
    </property>
@@ -1262,6 +1284,8 @@
     <addaction name="actionAbout"/>
     <addaction name="actionUser_manual"/>
     <addaction name="actionReport_a_bug"/>
+    <addaction name="separator"/>
+    <addaction name="actionLogging"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuHelp"/>
@@ -1313,6 +1337,11 @@
   <action name="actionReport_a_bug">
    <property name="text">
     <string>Report a bug</string>
+   </property>
+  </action>
+  <action name="actionLogging">
+   <property name="text">
+    <string>Logging</string>
    </property>
   </action>
  </widget>

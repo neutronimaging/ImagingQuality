@@ -28,8 +28,12 @@
 #include <strings/filenames.h>
 #include <math/nonlinfit.h>
 #include <math/sums.h>
+#include <math/linfit.h>
 #include <io/io_serializecontainers.h>
 #include <profile/MicroTimer.h>
+#include <profileextractor.h>
+#include <stltools/stlvecmath.h>
+
 
 #include "edgefileitemdialog.h"
 #include "reportmaker.h"
@@ -65,7 +69,7 @@ NIQAMainWindow::NIQAMainWindow(QWidget *parent) :
     configFileName("niqaconfig.xml")
 {
     ui->setupUi(this);
-    ui->groupBox_2Dreferences->hide(); // TODO implement normalization of edge images
+  //  ui->groupBox_2Dreferences->hide(); // TODO implement normalization of edge images
 
     // Setup logging dialog
     logdlg->setModal(false);
@@ -74,17 +78,15 @@ NIQAMainWindow::NIQAMainWindow(QWidget *parent) :
     ui->widget_roiEdge2D->setAllowUpdateImageDims(false);
     ui->widget_roiEdge2D->registerViewer(ui->viewer_edgeimages);
     ui->widget_roiEdge2D->setROIColor("red");
-
-    ui->groupBox_2DCrop->setChecked(false);
-    //on_check_edge2dcrop_toggled(false);
+    ui->widget_roiEdge2D->setCheckable(true);
+    ui->widget_roiEdge2D->setChecked(false);
 
     ui->widget_openBeamReader->setLabel("Open beam mask");
     ui->widget_darkCurrentReader->setLabel("Dark current mask");
 
     ui->widget_roi3DBalls->registerViewer(ui->viewer_Packing);
+    ui->widget_roi3DBalls->setChecked(false);    
 
-    ui->check_3DBallsCrop->setChecked(false);
-    on_check_3DBallsCrop_toggled(false);
     ui->widget_bundleroi->setViewer(ui->viewer_Packing);
     ui->widget_reportName->setFileOperation(false);
     loadCurrent();
@@ -438,7 +440,7 @@ void NIQAMainWindow::on_button_LoadPacking_clicked()
     size_t crop[4];
     size_t *pCrop = nullptr;
 
-    if (ui->check_3DBallsCrop->isChecked()) {
+    if (ui->widget_roi3DBalls->isChecked()) {
         ui->widget_roi3DBalls->getROI(crop);
         pCrop=crop;
     }
@@ -657,8 +659,8 @@ void NIQAMainWindow::updateConfig()
     config.edgeAnalysis2D.dcLast = loader.m_nLast;
     config.edgeAnalysis2D.dcStep = loader.m_nStep;
     config.edgeAnalysis2D.pixelSize = ui->doubleSpinBox_2dEdge_pixelSize->value();
-    config.edgeAnalysis2D.useROI = ui->groupBox_2DCrop->isChecked();
     config.edgeAnalysis2D.fitFunction = ui->comboBox_edgeFitFunction->currentIndex();
+    config.edgeAnalysis2D.useROI = ui->widget_roiEdge2D->isChecked();
     ui->widget_roiEdge2D->getROI(config.edgeAnalysis2D.roi);
     config.edgeAnalysis2D.makeReport = ui->checkBox_report2DEdge->isChecked();
 
@@ -677,7 +679,7 @@ void NIQAMainWindow::updateConfig()
     config.ballPackingAnalysis.first    = loader.m_nFirst;
     config.ballPackingAnalysis.last     = loader.m_nLast;
     config.ballPackingAnalysis.step     = loader.m_nStep;
-    config.ballPackingAnalysis.useCrop  = ui->check_3DBallsCrop->isChecked();
+    config.ballPackingAnalysis.useCrop  = ui->widget_roi3DBalls->isChecked();
     config.ballPackingAnalysis.analysisROIs = ui->widget_bundleroi->getROIs();
     ui->widget_roi3DBalls->getROI(config.ballPackingAnalysis.roi);
     config.ballPackingAnalysis.makeReport = ui->checkBox_reportBallPacking->isChecked();
@@ -750,7 +752,7 @@ void NIQAMainWindow::updateDialog()
     ui->widget_darkCurrentReader->setReaderConfig(loader);
 
     ui->doubleSpinBox_2dEdge_pixelSize->setValue(config.edgeAnalysis2D.pixelSize);
-    ui->groupBox_2DCrop->setChecked(config.edgeAnalysis2D.useROI);
+    ui->widget_roiEdge2D->setChecked(config.edgeAnalysis2D.useROI);
     ui->widget_roiEdge2D->setROI(config.edgeAnalysis2D.roi);
     ui->comboBox_edgeFitFunction->setCurrentIndex(config.edgeAnalysis2D.fitFunction);
     ui->checkBox_report2DEdge->setChecked(config.edgeAnalysis2D.makeReport);
@@ -771,7 +773,7 @@ void NIQAMainWindow::updateDialog()
     loader.m_nLast = config.ballPackingAnalysis.last;
     loader.m_nStep = config.ballPackingAnalysis.step;
     ui->imageloader_packing->setReaderConfig(loader);
-    ui->check_3DBallsCrop->setChecked(config.ballPackingAnalysis.useCrop);
+    ui->widget_roi3DBalls->setChecked(config.ballPackingAnalysis.useCrop);
     ui->widget_bundleroi->setROIs(config.ballPackingAnalysis.analysisROIs);
     ui->widget_roi3DBalls->setROI(config.ballPackingAnalysis.roi);
     ui->checkBox_reportBallPacking->setChecked(config.ballPackingAnalysis.makeReport);
@@ -793,7 +795,7 @@ void NIQAMainWindow::on_slider_PackingImages_sliderMoved(int position)
         case 0: ui->slider_PackingImages->setEnabled(true);
                 ui->viewer_Packing->set_image(m_BallAssembly.GetLinePtr(0,position),
                                               m_BallAssembly.Dims());
-                if (ui->check_3DBallsCrop->isChecked()) {
+                if (ui->widget_roi3DBalls->isChecked()) {
                     QRect roi;
                     ui->widget_roi3DBalls->getROI(roi);
                     ui->viewer_Packing->set_rectangle(roi,QColor("red"),0);
@@ -868,43 +870,53 @@ void NIQAMainWindow::on_button_estimateCollimation_clicked()
         return ;
     }
 
-    Array1D<double> y(N);
-    Array2D<double> H(N,2);
-    Array2D<double> C(N,N,0.0);
-
+    TNT::Array2D<double> y(N,1);
+    TNT::Array2D<double> H(N,2);
+    TNT::Array2D<double> C(N,N,0.0);
+    TNT::Array2D<double> param;
 
     QLineSeries *series = new QLineSeries(); //Life time
 
+    const double eps=1e-5;
     for (int i=0; i<N; ++i) {
         auto item = dynamic_cast<EdgeInfoListItem *>(ui->listWidget_edgeInfo->item(i));
 
-        float distance=item->distance;
-        float width=item->FWHMmetric;
-//        y[i]=width;
-//        H[i][0]=1.0;
-//        H[i][1]=distance*distance;
-//        C[i][i]=1.0/distance+1e-3;
-        double invDistance = 1.0 / (distance+1e-3);
-        y[i]=width * invDistance ;
-        H[i][0]=1.0 * invDistance;
-        H[i][1]=distance*distance * invDistance;
-        C[i][i]=1.0/distance+1e-3;
+        double distance=item->distance;
+        double width=item->FWHMmetric;
+
+        double invDistance = 1.0 / (distance+eps);
+        y[i][0]=width*width  ;
+        H[i][0]=1.0 ;
+        H[i][1]=distance*distance;
+        C[i][i]=1.0/(distance+eps);
+
         qDebug() <<"Distance: "<<distance<<", Width: "<<width;
         series->append(QPointF(distance,width));
     }
-   // Array2D<double> HTH=matmult(transpose(H),matmult(C,))
 
-//    TNT::QR<double> solver(H);
+    kipl::math::weightedLSFit(H,C,y,param);
 
-//    Array2D<double> q=solver.solve(y);
+    float res = sqrt(param[0][0]);
+    float LD  = 1.0/sqrt(param[1][0]);
+    qDebug() << "param[0]:" << res << "param[1]:" <<LD;
+
+    TNT::Array2D<double> fit=TNT::matmult(H,param);
+    QLineSeries *fit_series = new QLineSeries();
+    for (int i=0 ; i<N ; ++i) {
+        float distance = sqrt(H[i][1]);
+        float width    = sqrt(fit[i][0]);
+        fit_series->append(QPointF(distance,width));
+    }
+
 
     QChart *chart = new QChart;
     chart->addSeries(series);
-
+    chart->addSeries(fit_series);
     chart->legend()->hide();
     chart->createDefaultAxes();
 
     ui->chart_collimation->setChart(chart);
+
 }
 
 void NIQAMainWindow::getEdge2Dprofiles()
@@ -918,12 +930,14 @@ void NIQAMainWindow::getEdge2Dprofiles()
     ui->widget_roiEdge2D->getROI(crop);
     m_Edges2D.clear();
     m_DEdges2D.clear();
-    size_t *pCrop= ui->groupBox_2DCrop->isChecked() ? crop : nullptr;
 
-    float *profile=nullptr;
+    ImagingQAAlgorithms::ProfileExtractor pe;
+
+    size_t *pCrop= ui->widget_roiEdge2D->isChecked() ? crop : nullptr;
+    std::map<float,float> pvec;
     for (int i=0; i<ui->listEdgeFiles->count(); ++i) {
         item = dynamic_cast<EdgeFileListItem *>(ui->listEdgeFiles->item(i));
-
+        logger.message(item->filename.toStdString());
         if (item->checkState()==Qt::CheckState::Unchecked)
             continue;
 
@@ -935,24 +949,16 @@ void NIQAMainWindow::getEdge2Dprofiles()
             return ;
         }
 
-        if (profile==nullptr)
-            profile=new float[img.Size(0)];
+        pvec=pe.getProfile(img);
+        if (pvec.rbegin()->second<pvec.begin()->second) {
+            for (auto it=pvec.begin(); it!=pvec.end(); ++it)
+                it->second=-it->second;
+        }
 
-        kipl::base::HorizontalProjection2D(img.GetDataPtr(), img.Dims(), profile, true);
-        size_t profileWidth2=img.Size(0)/2;
-        float s0=kipl::math::sum(profile,profileWidth2-1);
-        float s1=kipl::math::sum(profile+profileWidth2,profileWidth2-1);
-        if (s1<s0)
-            for (size_t i=0; i<img.Size(0); ++i)
-                profile[i]=-profile[i];
-        std::vector<float> pvec;
-        std::copy(profile,profile+img.Size(0),std::back_inserter(pvec));
         m_Edges2D[item->distance]=pvec;
+        m_DEdges2D[item->distance]=diff(pvec);
 
     }
-
-
-    delete [] profile;
 }
 
 void NIQAMainWindow::estimateResolutions()
@@ -1041,33 +1047,38 @@ void NIQAMainWindow::plotEdgeProfiles()
     int idx=0;
     ui->listWidget_edgeInfo->clear();
 
-    for (auto it = m_Edges2D.begin(); it!=m_Edges2D.end(); ++it,++idx) {
-        QLineSeries *series = new QLineSeries(); //Life time
-        auto edge=it->second;
-        if (ui->comboBox_edgePlotType->currentIndex()==0) {
-            for (size_t i=0; i<edge.size(); ++i) {
-                series->append(QPointF(i,float(edge[i])));
-            }
+    if (ui->comboBox_edgePlotType->currentIndex()==0) {
+        for (auto it = m_Edges2D.begin(); it!=m_Edges2D.end(); ++it,++idx) {
+            QLineSeries *series = new QLineSeries(); //Life time
+            auto edge=it->second;
+
+            for (auto dit=edge.begin(); dit!=edge.end(); ++dit)
+                series->append(static_cast<qreal>(dit->first),static_cast<qreal>(dit->second));
+
+            chart->addSeries(series);
         }
-        else {
-            Array1D<double> x(edge.size());
-            Array1D<double> y(edge.size());
-            Array1D<double> sig(edge.size());
+    }
+    else {
 
-            std::list<double> dedge;
-            for (size_t i=1; i<edge.size(); ++i) {
-                series->append(QPointF(i,float(edge[i]-edge[i-1])));
-                x[i]=double(i);
-                y[i]=double(edge[i]-edge[i-1]);
+        for (auto it = m_DEdges2D.begin(); it!=m_DEdges2D.end(); ++it,++idx) {
+            QLineSeries *series = new QLineSeries(); //Life time
+
+            auto edge=it->second;
+            int Nedge=static_cast<int>(edge.size());
+            Array1D<double> x(Nedge);
+            Array1D<double> y(Nedge);
+            Array1D<double> sig(Nedge);
+
+            int i=0;
+
+            for (auto dit=edge.begin(); dit!=edge.end(); ++dit, ++i)
+            {
+                series->append(static_cast<qreal>(dit->first), static_cast<qreal>(dit->second));
                 sig[i]=1.0;
-                dedge.push_back(y[i]);
+                x[i]=static_cast<double>(dit->first);
+                y[i]=static_cast<double>(dit->second);
             }
-//            std::string fname="/Users/kaestner/edge_"+std::to_string(idx)+".txt";
 
-//            kipl::io::serializeContainer(dedge.begin(),dedge.end(),fname);
-            x[0]=x[1];
-            y[0]=y[1];
-            sig[0]=1.0;
             qDebug() << "Pre fitting";
             if (ui->comboBox_edgeFitFunction->currentIndex()!=0) {
                 EdgeInfoListItem *item = new EdgeInfoListItem;
@@ -1080,13 +1091,13 @@ void NIQAMainWindow::plotEdgeProfiles()
                     int maxpos=0;
                     int minpos=0;
                     int idx=0;
-                    for (auto eitem : dedge) {
-                        if (maxval<eitem) {
-                            maxval=eitem;
+                    for (auto eitem : edge) {
+                        if (maxval<eitem.second) {
+                            maxval=eitem.second;
                             maxpos=idx;
                         }
-                        if (eitem< minval) {
-                            minval=eitem;
+                        if (eitem.second< minval) {
+                            minval=eitem.second;
                             minpos=idx;
                         }
                         idx++;
@@ -1133,28 +1144,13 @@ void NIQAMainWindow::plotEdgeProfiles()
 
                 ui->listWidget_edgeInfo->addItem(item);
             }
+            chart->addSeries(series);
         }
-
-        chart->addSeries(series);
     }
     chart->legend()->hide();
     chart->createDefaultAxes();
 
     ui->chart_2Dedges->setChart(chart);
-}
-
-void NIQAMainWindow::on_check_3DBallsCrop_toggled(bool checked)
-{
-    if (checked) {
-        QRect roi;
-        ui->widget_roi3DBalls->getROI(roi);
-        ui->viewer_Packing->set_rectangle(roi,QColor("red"),0);
-        ui->widget_roi3DBalls->show();
-    }
-    else {
-        ui->viewer_Packing->clear_rectangle(0);
-        ui->widget_roi3DBalls->hide();
-    }
 }
 
 void NIQAMainWindow::on_widget_roi3DBalls_getROIclicked()
@@ -1198,16 +1194,7 @@ void NIQAMainWindow::on_pushButton_contrast_pixelSize_clicked()
 
 }
 
-void NIQAMainWindow::on_pushButton_logging_clicked()
-{
-    if (logdlg->isHidden()) {
 
-        logdlg->show();
-    }
-    else {
-        logdlg->hide();
-    }
-}
 
 void NIQAMainWindow::on_pushButton_2dEdge_pixelSize_clicked()
 {
@@ -1421,3 +1408,14 @@ void NIQAMainWindow::on_pushButton_bigball_pixelsize_clicked()
 }
 
 
+
+void NIQAMainWindow::on_actionLogging_triggered()
+{
+        if (logdlg->isHidden()) {
+
+            logdlg->show();
+        }
+        else {
+            logdlg->hide();
+        }
+}

@@ -1,32 +1,20 @@
-# Prerequisites
-*.d
-
-# Compiled Object files
-*.slo
-*.lo
+.DS_Store
+core/algorithms/ImagingAlgorithms/.DS_Store
+build*
+*.user
+*.stash
 *.o
-*.obj
-
-# Precompiled Headers
-*.gch
-*.pch
-
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
-
-# Fortran module files
-*.mod
-*.smod
-
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
-
-# Executables
-*.exe
-*.out
-*.app
+*~
+*.autosave
+*.in
+*.pc
+.DS-Store
+.ipynb_checkpoints
+*.sym
+*.aux
+*.bbl
+*.blg
+*.log
+*.toc
+*.pdf
+*.synctex.gz
