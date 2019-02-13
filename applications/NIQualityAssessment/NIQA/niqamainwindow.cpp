@@ -11,6 +11,7 @@
 #include <QLineSeries>
 #include <QPointF>
 #include <QChart>
+#include <QString>
 #include <QListWidgetItem>
 #include <QTableWidgetItem>
 #include <QDesktopServices>
@@ -858,7 +859,7 @@ void NIQAMainWindow::on_button_get2Dedges_clicked()
     saveCurrent();
     getEdge2Dprofiles();
     plotEdgeProfiles();
-
+    fitEdgeProfiles();
     ui->tabWidget_edge2D->setCurrentIndex(1);
 }
 
@@ -877,14 +878,13 @@ void NIQAMainWindow::on_button_estimateCollimation_clicked()
 
     QLineSeries *series = new QLineSeries(); //Life time
 
-    const double eps=1e-5;
+    const double eps=0;
     for (int i=0; i<N; ++i) {
         auto item = dynamic_cast<EdgeInfoListItem *>(ui->listWidget_edgeInfo->item(i));
 
         double distance=item->distance;
         double width=item->FWHMmetric;
 
-        double invDistance = 1.0 / (distance+eps);
         y[i][0]=width*width  ;
         H[i][0]=1.0 ;
         H[i][1]=distance*distance;
@@ -898,7 +898,10 @@ void NIQAMainWindow::on_button_estimateCollimation_clicked()
 
     float res = sqrt(param[0][0]);
     float LD  = 1.0/sqrt(param[1][0]);
+    QString text;
+    QTextStream(&text) << "Intrinsic resolution:" << res << " L/D:" <<LD;
     qDebug() << "param[0]:" << res << "param[1]:" <<LD;
+    ui->label_collimationFit->setText(text);
 
     TNT::Array2D<double> fit=TNT::matmult(H,param);
     QLineSeries *fit_series = new QLineSeries();
@@ -956,13 +959,110 @@ void NIQAMainWindow::getEdge2Dprofiles()
         }
 
         m_Edges2D[item->distance]=pvec;
+        std::string fname="edge.csv";
+        kipl::io::serializeMap(pvec,fname);
         m_DEdges2D[item->distance]=diff(pvec);
-
+        kipl::io::serializeMap(m_DEdges2D[item->distance],"dedge.csv");
     }
 }
 
 void NIQAMainWindow::estimateResolutions()
 {
+
+}
+
+void NIQAMainWindow::fitEdgeProfiles()
+{
+    std::ostringstream msg;
+    int item_idx=0;
+
+    const double FWHMconst=2*sqrt(log(2));
+    ui->listWidget_edgeInfo->clear();
+    for (auto it = m_DEdges2D.begin(); it!=m_DEdges2D.end(); ++it,++item_idx) {
+
+        auto edge=it->second;
+        int Nedge=static_cast<int>(edge.size());
+        Array1D<double> x(Nedge);
+        Array1D<double> y(Nedge);
+        Array1D<double> sig(Nedge);
+     //   qDebug() << "fit idx="<<item_idx<<" len="<<Nedge;
+        int i=0;
+
+        for (auto dit=edge.begin(); dit!=edge.end(); ++dit, ++i)
+        {
+            sig[i]=1.0;
+            x[i]=static_cast<double>(dit->first);
+            y[i]=static_cast<double>(dit->second);
+        }
+
+
+        EdgeInfoListItem *item = new EdgeInfoListItem;
+
+        Nonlinear::LevenbergMarquardt mrqfit(0.001,5000);
+        try {
+            double maxval=-std::numeric_limits<double>::max();
+            double minval=std::numeric_limits<double>::max();
+            int maxpos=0;
+            int minpos=0;
+            int idx=0;
+            for (auto eitem : edge) {
+                if (maxval<eitem.second) {
+                    maxval=eitem.second;
+                    maxpos=idx;
+                }
+                if (eitem.second< minval) {
+                    minval=eitem.second;
+                    minpos=idx;
+                }
+                idx++;
+            }
+
+            double halfmax=(maxval-minval)/2+minval;
+            int HWHM=maxpos;
+
+            for (; HWHM<y.dim1(); ++HWHM) {
+                if (y[HWHM]<halfmax)
+                    break;
+            }
+            item->fitModel[0]=maxval;
+            item->fitModel[1]=maxpos;
+            item->fitModel[2]=(HWHM-maxpos)*2;
+            if (item->fitModel[2]<2) {
+                logger.warning("Could not find FWHM, using constant =10");
+                item->fitModel[2]=10.0;
+            }
+//            qDebug() << "Fitter initialized"
+//                     << "ampl "<<item->fitModel[0]
+//                     << "pos "<<item->fitModel[1]
+//                     << "width "<<item->fitModel[2];
+            mrqfit.fit(x,y,sig,item->fitModel);
+            qDebug() << "Fitter done"
+                     << "ampl "<<item->fitModel[0]
+                     << "pos "<<item->fitModel[1]
+                     << "width "<<item->fitModel[2];
+        }
+        catch (kipl::base::KiplException &e) {
+            logger.error(e.what());
+            return ;
+        }
+        catch (std::exception &e) {
+            logger.message(msg.str());
+            return ;
+        }
+
+        msg.str("");
+        msg<<item->fitModel[0]<<", "<<item->fitModel[1]<<", "<<item->fitModel[2];
+        logger.message(msg.str());
+
+        item->distance=it->first;
+        item->FWHMpixels=FWHMconst*item->fitModel[2];
+        item->FWHMmetric=FWHMconst*config.edgeAnalysis2D.pixelSize*(item->fitModel[2]);
+        msg.str(""); msg<<"distance="<<(it->first)<<"mm, FWHM="<<item->FWHMmetric<<"mm ("<<item->FWHMpixels<<" pixels)";
+        item->setData(Qt::DisplayRole,QString::fromStdString(msg.str()));
+
+        ui->listWidget_edgeInfo->addItem(item);
+    }
+    qDebug() << " list count"<< ui->listWidget_edgeInfo->count();
 
 }
 
@@ -1045,7 +1145,6 @@ void NIQAMainWindow::plotEdgeProfiles()
     std::ostringstream msg;
     QChart *chart = new QChart(); // Life time
     int idx=0;
-    ui->listWidget_edgeInfo->clear();
 
     if (ui->comboBox_edgePlotType->currentIndex()==0) {
         for (auto it = m_Edges2D.begin(); it!=m_Edges2D.end(); ++it,++idx) {
@@ -1053,8 +1152,9 @@ void NIQAMainWindow::plotEdgeProfiles()
             auto edge=it->second;
 
             for (auto dit=edge.begin(); dit!=edge.end(); ++dit)
+            {
                 series->append(static_cast<qreal>(dit->first),static_cast<qreal>(dit->second));
-
+            }
             chart->addSeries(series);
         }
     }
@@ -1064,86 +1164,13 @@ void NIQAMainWindow::plotEdgeProfiles()
             QLineSeries *series = new QLineSeries(); //Life time
 
             auto edge=it->second;
-            int Nedge=static_cast<int>(edge.size());
-            Array1D<double> x(Nedge);
-            Array1D<double> y(Nedge);
-            Array1D<double> sig(Nedge);
-
             int i=0;
 
             for (auto dit=edge.begin(); dit!=edge.end(); ++dit, ++i)
             {
                 series->append(static_cast<qreal>(dit->first), static_cast<qreal>(dit->second));
-                sig[i]=1.0;
-                x[i]=static_cast<double>(dit->first);
-                y[i]=static_cast<double>(dit->second);
             }
 
-            qDebug() << "Pre fitting";
-            if (ui->comboBox_edgeFitFunction->currentIndex()!=0) {
-                EdgeInfoListItem *item = new EdgeInfoListItem;
-
-                Nonlinear::LevenbergMarquardt mrqfit(0.001,5000);
-                qDebug() << "Starting fitter";
-                try {
-                    double maxval=-std::numeric_limits<double>::max();
-                    double minval=std::numeric_limits<double>::max();
-                    int maxpos=0;
-                    int minpos=0;
-                    int idx=0;
-                    for (auto eitem : edge) {
-                        if (maxval<eitem.second) {
-                            maxval=eitem.second;
-                            maxpos=idx;
-                        }
-                        if (eitem.second< minval) {
-                            minval=eitem.second;
-                            minpos=idx;
-                        }
-                        idx++;
-                    }
-
-                    double halfmax=(maxval-minval)/2+minval;
-                    int HWHM=maxpos;
-
-                    for (; HWHM<y.dim1(); ++HWHM) {
-                        if (y[HWHM]<halfmax)
-                            break;
-                    }
-                    item->fitModel[0]=maxval;
-                    item->fitModel[1]=maxpos;
-                    item->fitModel[2]=(HWHM-maxpos)*2;
-                    if (item->fitModel[2]<2) {
-                        logger.warning("Could not find FWHM, using constant =10");
-                        item->fitModel[2]=10.0;
-                    }
-                    qDebug() << "width "<<item->fitModel[2];
-                    qDebug() << "Fitter initialized";
-                    mrqfit.fit(x,y,sig,item->fitModel);
-                    qDebug() << "Fitter done";
-                }
-                catch (kipl::base::KiplException &e) {
-                    logger.error(e.what());
-                    return ;
-                }
-                catch (std::exception &e) {
-                    logger.message(msg.str());
-                    return ;
-                }
-
-                msg.str("");
-                msg<<item->fitModel[0]<<", "<<item->fitModel[1]<<", "<<item->fitModel[2];
-
-                logger.message(msg.str());
-                item->distance=it->first;
-                item->FWHMpixels=item->fitModel[2];
-                item->FWHMmetric=config.edgeAnalysis2D.pixelSize*(item->fitModel[2]);
-
-                msg.str(""); msg<<"distance="<<(it->first)<<"mm, FWHM="<<item->FWHMmetric<<"mm ("<<item->FWHMpixels<<" pixels)";
-                item->setData(Qt::DisplayRole,QString::fromStdString(msg.str()));
-
-                ui->listWidget_edgeInfo->addItem(item);
-            }
             chart->addSeries(series);
         }
     }
@@ -1299,11 +1326,12 @@ void NIQAMainWindow::on_pushButton_createReport_clicked()
 
 void NIQAMainWindow::on_comboBox_edgeFitFunction_currentIndexChanged(int index)
 {
-
+    (void)index;
 }
 
 void NIQAMainWindow::on_comboBox_edgePlotType_currentIndexChanged(int index)
 {
+    (void)index;
     plotEdgeProfiles();
 }
 
