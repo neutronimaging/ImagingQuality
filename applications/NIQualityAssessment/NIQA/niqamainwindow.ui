@@ -469,6 +469,13 @@
            </layout>
           </item>
           <item>
+           <widget class="QLabel" name="label_20">
+            <property name="text">
+             <string>Instructions</string>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QScrollArea" name="scrollArea_2">
             <property name="widgetResizable">
              <bool>true</bool>
@@ -479,7 +486,7 @@
                <x>0</x>
                <y>0</y>
                <width>588</width>
-               <height>135</height>
+               <height>123</height>
               </rect>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_18">
@@ -489,7 +496,7 @@
                  <enum>Qt::ScrollBarAlwaysOn</enum>
                 </property>
                 <property name="readOnly">
-                 <bool>true</bool>
+                 <bool>false</bool>
                 </property>
                 <property name="plainText">
                  <string>1. Select edge images by clicking on the Add button. You can select multiple images in the dialog. For each image you will be prompted for the distance from scintillator.
@@ -499,7 +506,7 @@
 5.  Inspect the images by clicking on them in the list and click the preview button.
 6. Now you are ready to analyze, click the analyze edges button.
 7. The plots appear and you can choose between edge or edge detivative. Edge derivative also computes a Gaussian fit.
-8. Selecting the collimation estimate plots all FWHM values as function of the distance to the detector. The L/D estimate is not yet implemented.</string>
+8. Selecting the collimation estimate plots all FWHM values as function of the distance to the detector and fits the curve to estimate the L/D.</string>
                 </property>
                </widget>
               </item>
@@ -518,7 +525,7 @@
            </size>
           </property>
           <property name="currentIndex">
-           <number>0</number>
+           <number>2</number>
           </property>
           <widget class="QWidget" name="tab_preview">
            <attribute name="title">
@@ -611,7 +618,7 @@
             <item>
              <widget class="QLabel" name="label_collimationFit">
               <property name="text">
-               <string>TextLabel</string>
+               <string>N/A</string>
               </property>
              </widget>
             </item>
@@ -767,6 +774,13 @@
              </layout>
             </item>
             <item>
+             <widget class="QLabel" name="label_21">
+              <property name="text">
+               <string>Instructions</string>
+              </property>
+             </widget>
+            </item>
+            <item>
              <widget class="QScrollArea" name="scrollArea_3">
               <property name="widgetResizable">
                <bool>true</bool>
@@ -777,12 +791,15 @@
                  <x>0</x>
                  <y>0</y>
                  <width>350</width>
-                 <height>232</height>
+                 <height>220</height>
                 </rect>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_22">
                 <item>
                  <widget class="QPlainTextEdit" name="plainTextEdit_3">
+                  <property name="readOnly">
+                   <bool>true</bool>
+                  </property>
                   <property name="plainText">
                    <string>1. Browse for the reconstructed data from the large Cu ball, select one slice. The number of slices will be automatically determined. Make sure that the entire ball is in the selected slices and also that there are no other items in the slices.
 2. Set the pixel size.
@@ -967,17 +984,45 @@
              </widget>
             </item>
             <item>
-             <spacer name="verticalSpacer_7">
-              <property name="orientation">
-               <enum>Qt::Vertical</enum>
+             <widget class="QLabel" name="label_19">
+              <property name="text">
+               <string>Instructions</string>
               </property>
-              <property name="sizeHint" stdset="0">
-               <size>
-                <width>20</width>
-                <height>40</height>
-               </size>
+             </widget>
+            </item>
+            <item>
+             <widget class="QScrollArea" name="scrollArea_4">
+              <property name="widgetResizable">
+               <bool>true</bool>
               </property>
-             </spacer>
+              <widget class="QWidget" name="scrollAreaWidgetContents_4">
+               <property name="geometry">
+                <rect>
+                 <x>0</x>
+                 <y>0</y>
+                 <width>350</width>
+                 <height>123</height>
+                </rect>
+               </property>
+               <layout class="QVBoxLayout" name="verticalLayout_23">
+                <item>
+                 <widget class="QPlainTextEdit" name="plainTextEdit_4">
+                  <property name="readOnly">
+                   <bool>true</bool>
+                  </property>
+                  <property name="plainText">
+                   <string>1. Click on browse to select a set of slices containing the ball packing samples. The slice interval should have the same a height as the size of the packing diameter. 
+2. Load the images by clicking the load button.
+3. Mark an ROI for the sample assembly.
+4. Mark ROI boxes inside each ball packing and click add ROI.
+5. Add a final ROI in a constant intensity region to obtain a noise reference.
+5. Press analyse and inspect the resulting plot.</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </widget>
+             </widget>
             </item>
            </layout>
           </item>

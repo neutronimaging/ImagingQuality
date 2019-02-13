@@ -115,6 +115,7 @@ private:
     void on_widget_roi3DBalls_valueChanged(int x0, int y0, int x1, int y1);
     void getEdge2Dprofiles();
     void estimateResolutions();
+    void fitEdgeProfiles();
     void fitEdgeProfile(std::vector<float> &dataX, std::vector<float> &dataY, std::vector<float> &dataSig, Nonlinear::FitFunctionBase &fitFunction);
     void fitEdgeProfile(TNT::Array1D<double> &dataX, TNT::Array1D<double> &dataY, TNT::Array1D<double> &dataSig, Nonlinear::FitFunctionBase &fitFunction);
     void plotEdgeProfiles();
