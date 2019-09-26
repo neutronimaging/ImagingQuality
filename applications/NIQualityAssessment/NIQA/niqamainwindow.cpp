@@ -1175,7 +1175,10 @@ void NIQAMainWindow::plotEdgeProfiles()
 
     if (ui->comboBox_edgePlotType->currentIndex()==0) {
         for (auto it = m_Edges2D.begin(); it!=m_Edges2D.end(); ++it,++idx) {
-            QLineSeries *series = new QLineSeries(); //Life time
+            QLineSeries *series = new QLineSeries();
+            msg.str("");
+            msg<<it->first<<"mm";
+            series->setName(msg.str().c_str());
             auto edge=it->second;
 
             for (auto dit=edge.begin(); dit!=edge.end(); ++dit)
@@ -1190,6 +1193,10 @@ void NIQAMainWindow::plotEdgeProfiles()
         for (auto it = m_DEdges2D.begin(); it!=m_DEdges2D.end(); ++it,++idx) {
             QLineSeries *series = new QLineSeries(); //Life time
 
+            msg.str("");
+            msg<<it->first<<"mm";
+            series->setName(msg.str().c_str());
+
             auto edge=it->second;
             int i=0;
 
@@ -1201,7 +1208,7 @@ void NIQAMainWindow::plotEdgeProfiles()
             chart->addSeries(series);
         }
     }
-    chart->legend()->hide();
+  //  chart->legend()->hide();
     chart->createDefaultAxes();
 
     ui->chart_2Dedges->setChart(chart);
