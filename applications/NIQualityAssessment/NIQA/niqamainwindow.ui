@@ -18,7 +18,7 @@
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>0</number>
+       <number>3</number>
       </property>
       <widget class="QWidget" name="tab_ContrastAnalysis">
        <attribute name="title">
@@ -491,7 +491,7 @@
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>588</width>
+               <width>578</width>
                <height>123</height>
               </rect>
              </property>
@@ -531,7 +531,7 @@
            </size>
           </property>
           <property name="currentIndex">
-           <number>2</number>
+           <number>1</number>
           </property>
           <widget class="QWidget" name="tab_preview">
            <attribute name="title">
@@ -592,7 +592,7 @@
              </layout>
             </item>
             <item>
-             <widget class="QChartView" name="chart_2Dedges" native="true">
+             <widget class="QtAddons::PlotWidget" name="chart_2Dedges" native="true">
               <property name="minimumSize">
                <size>
                 <width>0</width>
@@ -612,7 +612,7 @@
            </attribute>
            <layout class="QVBoxLayout" name="verticalLayout_13">
             <item>
-             <widget class="QChartView" name="chart_collimation" native="true">
+             <widget class="QtAddons::PlotWidget" name="chart_collimation" native="true">
               <property name="minimumSize">
                <size>
                 <width>0</width>
@@ -883,7 +883,7 @@
           <item>
            <layout class="QVBoxLayout" name="verticalLayout_6">
             <item>
-             <widget class="QChartView" name="chart_bigball" native="true">
+             <widget class="QtAddons::PlotWidget" name="chart_bigball" native="true">
               <property name="minimumSize">
                <size>
                 <width>350</width>
@@ -1087,7 +1087,7 @@
           <item>
            <layout class="QVBoxLayout" name="verticalLayout_16">
             <item>
-             <widget class="QChartView" name="chart_packing" native="true">
+             <widget class="QtAddons::PlotWidget" name="chart_packing" native="true">
               <property name="minimumSize">
                <size>
                 <width>350</width>
@@ -1438,6 +1438,12 @@
    <class>SingleFileForm</class>
    <extends>QWidget</extends>
    <header location="global">singlefileform.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>QtAddons::PlotWidget</class>
+   <extends>QWidget</extends>
+   <header location="global">plotwidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

@@ -124,7 +124,7 @@ public:
         bool makeReport;
     };
 
-    std::string WriteXML();
+    const std::string WriteXML();
     void loadConfigFile(std::string configfile, std::string ProjectName);
 
     UserInformation userInformation;

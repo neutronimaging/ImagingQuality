@@ -34,7 +34,7 @@ const NIQAConfig & NIQAConfig::operator=(const NIQAConfig &c)
     return *this;
 }
 
-std::string NIQAConfig::WriteXML()
+const std::string NIQAConfig::WriteXML()
 {
     std::ostringstream str;
 
