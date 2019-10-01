@@ -37,6 +37,8 @@
 #include <profile/MicroTimer.h>
 #include <profileextractor.h>
 #include <stltools/stlvecmath.h>
+#include <readerexception.h>
+#include <base/KiplException.h>
 
 
 #include "edgefileitemdialog.h"
@@ -105,11 +107,18 @@ NIQAMainWindow::~NIQAMainWindow()
 void NIQAMainWindow::on_button_bigball_load_clicked()
 {
     saveCurrent();
-    auto loader=ui->ImageLoader_bigball->getReaderConfig();
+    FileSet loader=ui->ImageLoader_bigball->getReaderConfig();
 
     ImageReader reader;
 
-    m_BigBall=reader.Read(loader,kipl::base::ImageFlipNone,kipl::base::ImageRotateNone,1.0f,nullptr);
+    try {
+        m_BigBall=reader.Read(loader,kipl::base::ImageFlipNone,kipl::base::ImageRotateNone,1.0f,nullptr);
+    } catch (const kipl::base::KiplException & e) {
+        QMessageBox::warning(this,"File error","Failed to load the image data. Please, check that the correct file name was provided.");
+        logger.warning(e.what());
+        return;
+    }
+
 
     ui->slider_bigball_slice->setMinimum(0);
     ui->slider_bigball_slice->setMaximum(m_BigBall.Size(2)-1);
@@ -179,7 +188,8 @@ void NIQAMainWindow::plot3DEdgeProfiles(int index)
         series0->append(QPointF(*dit,*pit));
     }
 
-    ui->chart_bigball->setCurveData(0,series0);
+    ui->chart_bigball->setCurveData(0,series0,"Global edge");
+    ui->chart_bigball->setXLabel("Position [mm]");
 }
 
 void NIQAMainWindow::on_slider_bigball_slice_sliderMoved(int position)
@@ -203,7 +213,7 @@ void NIQAMainWindow::on_button_contrast_load_clicked()
     saveCurrent();
     std::ostringstream msg;
 
-    auto loader=ui->ImageLoader_contrast->getReaderConfig();
+    FileSet loader=ui->ImageLoader_contrast->getReaderConfig();
 
     ImageReader reader;
 
@@ -434,8 +444,13 @@ void NIQAMainWindow::on_listEdgeFiles_clicked(const QModelIndex &index)
 
     ImageReader reader;
 
-    img=reader.Read(item->filename.toStdString(),kipl::base::ImageFlipNone,kipl::base::ImageRotateNone,1.0f,nullptr);
-
+    try {
+        img=reader.Read(item->filename.toStdString(),kipl::base::ImageFlipNone,kipl::base::ImageRotateNone,1.0f,nullptr);
+    } catch (const kipl::base::KiplException & e) {
+        QMessageBox::warning(this,"File error","Failed to load the image data. Please, check that the correct file name was provided.");
+        logger.warning(e.what());
+        return;
+    }
     ui->viewer_edgeimages->set_image(img.GetDataPtr(),img.Dims());
    // on_check_edge2dcrop_toggled(ui->check_edge2dcrop->isEnabled());
 
@@ -444,7 +459,7 @@ void NIQAMainWindow::on_listEdgeFiles_clicked(const QModelIndex &index)
 void NIQAMainWindow::on_button_LoadPacking_clicked()
 {
     saveCurrent();
-    auto loader=ui->imageloader_packing->getReaderConfig();
+    FileSet loader=ui->imageloader_packing->getReaderConfig();
 
     ImageReader reader;
 
@@ -455,7 +470,14 @@ void NIQAMainWindow::on_button_LoadPacking_clicked()
         ui->widget_roi3DBalls->getROI(crop);
         pCrop=crop;
     }
-     m_BallAssembly=reader.Read(loader,kipl::base::ImageFlipNone,kipl::base::ImageRotateNone,1.0f,pCrop);
+
+    try {
+        m_BallAssembly=reader.Read(loader,kipl::base::ImageFlipNone,kipl::base::ImageRotateNone,1.0f,pCrop);
+    } catch (const kipl::base::KiplException & e) {
+        QMessageBox::warning(this,"File error","Failed to load the image data. Please, check that the correct file name was provided.");
+        logger.warning(e.what());
+        return;
+    }
 
      QSignalBlocker blocker(ui->slider_PackingImages);
      ui->slider_PackingImages->setMinimum(0);
@@ -1156,6 +1178,11 @@ void NIQAMainWindow::plotEdgeProfiles()
         for (auto it = m_Edges2D.begin(); it!=m_Edges2D.end(); ++it,++idx)
         {
             QLineSeries *series = new QLineSeries(); //Life time
+
+            msg.str("");
+            msg<<it->first<<"mm";
+            series->setName(msg.str().c_str());
+
             auto edge=it->second;
 
             for (auto dit=edge.begin(); dit!=edge.end(); ++dit)
@@ -1171,6 +1198,10 @@ void NIQAMainWindow::plotEdgeProfiles()
         for (auto it = m_DEdges2D.begin(); it!=m_DEdges2D.end(); ++it,++idx)
         {
             QLineSeries *series = new QLineSeries(); //Life time
+
+            msg.str("");
+            msg<<it->first<<"mm";
+            series->setName(msg.str().c_str());
 
             auto edge=it->second;
             int i=0;
