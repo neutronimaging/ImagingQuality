@@ -127,43 +127,6 @@ void NIQAMainWindow::on_button_bigball_load_clicked()
     ui->slider_bigball_slice->setValue(m_BigBall.Size(2)/2);
     on_slider_bigball_slice_sliderMoved(m_BigBall.Size(2)/2);
 
-    m_BallAnalyzer.setImage(m_BigBall);
-    float R=m_BallAnalyzer.getRadius();
-
-    kipl::base::coords3Df center=m_BallAnalyzer.getCenter();
-
-    std::ostringstream msg;
-    msg<<"["<<center.x<<", "<<center.y<<", "<<center.z<<"]";
-    ui->label_bigball_center->setText(QString::fromStdString(msg.str()));
-
-    msg.str("");
-    msg<<R<<" pixels = "<<R*ui->dspin_bigball_pixelsize->value();
-    ui->label_bigball_radius->setText(QString::fromStdString(msg.str()));
-
-    float width2=ui->dspin_bigball_profileWidth->value()*0.5;
-    m_BallAnalyzer.getEdgeProfile(R-width2,R+width2,m_edge3DDistance,m_edge3DProfile,m_edge3DStdDev);
-
-    size_t profileWidth2=m_edge3DProfile.size()/2;
-    float s0=std::accumulate(m_edge3DProfile.begin(),m_edge3DProfile.begin()+profileWidth2-1,0.0f);
-    float s1=std::accumulate(m_edge3DProfile.begin()+profileWidth2,m_edge3DProfile.end(),0.0f);
-
-    float sign= s0<s1 ? 1.0f : -1.0f;
-    m_edge3DDprofile.clear();
-
-    for (size_t i=1; i<m_edge3DProfile.size(); ++i)
-        m_edge3DDprofile.push_back(sign*(m_edge3DProfile[i]-m_edge3DProfile[i-1]));
-
-    m_edge3DDprofile.push_back(m_edge3DDprofile.back());
-
-    Nonlinear::SumOfGaussians sog;
-    std::vector<float> sig;
-
-    fitEdgeProfile(m_edge3DDistance,m_edge3DDprofile,sig,sog);
-    msg.str("");
-    msg<<sog[2]*2<<"pixels, "<<sog[2]*2*ui->dspin_bigball_pixelsize->value()<<" mm";
-    ui->label_bigball_FWHM->setText(QString::fromStdString(msg.str()));
-
-    plot3DEdgeProfiles(ui->comboBox_bigball_plotinformation->currentIndex());
 
 }
 
@@ -185,10 +148,11 @@ void NIQAMainWindow::plot3DEdgeProfiles(int index)
 
     qDebug() << "plot 3d edge" <<index;
     for (auto dit=m_edge3DDistance.begin(), pit=profile.begin(); pit!=profile.end(); ++dit, ++pit) {
-        series0->append(QPointF(*dit,*pit));
+        series0->append(QPointF((*dit)*config.edgeAnalysis3D.pixelSize,*pit));
     }
 
     ui->chart_bigball->setCurveData(0,series0,"Global edge");
+    ui->chart_bigball->hideLegend();
     ui->chart_bigball->setXLabel("Position [mm]");
 }
 
@@ -315,6 +279,7 @@ void NIQAMainWindow::showContrastBoxPlot()
 
     chart->legend()->hide();
     chart->createDefaultAxes();
+    chart->axisX()->setTitleText("Elements");
 
     ui->chart_contrast->setChart(chart);
 }
@@ -352,8 +317,7 @@ void NIQAMainWindow::showContrastHistogram()
     chart->addSeries(series0);
     chart->legend()->hide();
     chart->createDefaultAxes();
-//    chart->axisX()->setRange(0, 20);
-//    chart->axisY()->setRange(0, 10);
+    chart->axisX()->setTitleText("Image intensity");
 
     ui->chart_contrast->setChart(chart);
 }
@@ -530,6 +494,8 @@ void NIQAMainWindow::plotPackingStatistics(std::list<kipl::math::Statistics> &ro
     }
 
     ui->chart_packing->setCurveData(0,series0);
+    ui->chart_packing->setXLabel("Ball diameter [mm]");
+    ui->chart_packing->setYLabel("StdDev");
 }
 
 
@@ -1482,4 +1448,46 @@ void NIQAMainWindow::on_actionLogging_triggered()
         else {
             logdlg->hide();
         }
+}
+
+void NIQAMainWindow::on_button_bigball_analyze_clicked()
+{
+    m_BallAnalyzer.setImage(m_BigBall);
+    float R=m_BallAnalyzer.getRadius();
+
+    kipl::base::coords3Df center=m_BallAnalyzer.getCenter();
+
+    std::ostringstream msg;
+    msg<<"["<<center.x<<", "<<center.y<<", "<<center.z<<"]";
+    ui->label_bigball_center->setText(QString::fromStdString(msg.str()));
+
+    msg.str("");
+    msg<<R<<" pixels = "<<R*ui->dspin_bigball_pixelsize->value();
+    ui->label_bigball_radius->setText(QString::fromStdString(msg.str()));
+
+    float width2=ui->dspin_bigball_profileWidth->value()*0.5;
+    m_BallAnalyzer.getEdgeProfile(R-width2,R+width2,m_edge3DDistance,m_edge3DProfile,m_edge3DStdDev);
+
+    size_t profileWidth2=m_edge3DProfile.size()/2;
+    float s0=std::accumulate(m_edge3DProfile.begin(),m_edge3DProfile.begin()+profileWidth2-1,0.0f);
+    float s1=std::accumulate(m_edge3DProfile.begin()+profileWidth2,m_edge3DProfile.end(),0.0f);
+
+    float sign= s0<s1 ? 1.0f : -1.0f;
+    m_edge3DDprofile.clear();
+
+    for (size_t i=1; i<m_edge3DProfile.size(); ++i)
+        m_edge3DDprofile.push_back(sign*(m_edge3DProfile[i]-m_edge3DProfile[i-1]));
+
+    m_edge3DDprofile.push_back(m_edge3DDprofile.back());
+
+    Nonlinear::SumOfGaussians sog;
+    std::vector<float> sig;
+
+    fitEdgeProfile(m_edge3DDistance,m_edge3DDprofile,sig,sog);
+    msg.str("");
+    msg<<sog[2]*2<<"pixels, "<<sog[2]*2*ui->dspin_bigball_pixelsize->value()<<" mm";
+    ui->label_bigball_FWHM->setText(QString::fromStdString(msg.str()));
+
+    plot3DEdgeProfiles(ui->comboBox_bigball_plotinformation->currentIndex());
+
 }
