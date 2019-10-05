@@ -18,3 +18,5 @@ build*
 *.toc
 *.pdf
 *.synctex.gz
+*.pro.user.4.10-pre1
+*.pro.user.4.8-pre1

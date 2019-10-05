@@ -57,7 +57,7 @@ public:
         double intensityIntercept;
         double intensityMin;
         double intensityMax;
-
+        std::list<kipl::base::RectROI> analysisROIs;
         bool makeReport;
     };
 

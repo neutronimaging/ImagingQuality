@@ -93,6 +93,7 @@ NIQAMainWindow::NIQAMainWindow(QWidget *parent) :
     ui->widget_roi3DBalls->registerViewer(ui->viewer_Packing);
     ui->widget_roi3DBalls->setChecked(false);    
 
+    ui->widget_insetrois->setViewer(ui->viewer_contrast);
     ui->widget_bundleroi->setViewer(ui->viewer_Packing);
     ui->widget_reportName->setFileOperation(false);
     loadCurrent();
@@ -326,11 +327,18 @@ void NIQAMainWindow::on_button_AnalyzeContrast_clicked()
 {
     saveCurrent();
 
+    std::list<kipl::base::RectROI> roiList=ui->widget_insetrois->getSelectedROIs();
     kipl::profile::MicroTimer timer;
-    timer.Tic();
-    m_ContrastSampleAnalyzer.saveIntermediateImages=true;
-    m_ContrastSampleAnalyzer.analyzeContrast(ui->spin_contrast_pixelsize->value());
-    timer.Toc();
+    try
+    {
+        timer.Tic();
+        m_ContrastSampleAnalyzer.analyzeContrast(ui->spin_contrast_pixelsize->value(),roiList);
+        timer.Toc();
+    }
+    catch (kipl::base::KiplException &e)
+    {
+        QMessageBox::warning(this,"Contrast analysis failed",e.what());
+    }
     std::ostringstream msg;
     msg<<timer;
     logger.message(msg.str());
@@ -626,6 +634,7 @@ void NIQAMainWindow::updateConfig()
     }
 
     config.contrastAnalysis.pixelSize          = ui->spin_contrast_pixelsize->value();
+    config.contrastAnalysis.analysisROIs       = ui->widget_insetrois->getROIs();
     config.contrastAnalysis.makeReport         = ui->checkBox_reportContrast->isChecked();
 
     config.edgeAnalysis2D.multiImageList.clear();
@@ -674,7 +683,6 @@ void NIQAMainWindow::updateConfig()
     config.ballPackingAnalysis.analysisROIs = ui->widget_bundleroi->getROIs();
     ui->widget_roi3DBalls->getROI(config.ballPackingAnalysis.roi);
     config.ballPackingAnalysis.makeReport = ui->checkBox_reportBallPacking->isChecked();
-
 }
 
 void NIQAMainWindow::updateDialog()
@@ -709,7 +717,7 @@ void NIQAMainWindow::updateDialog()
     }
     ui->spin_contrast_pixelsize->setValue(config.contrastAnalysis.pixelSize);
     ui->checkBox_reportContrast->setChecked(config.contrastAnalysis.makeReport);
-
+    ui->widget_insetrois->setROIs(config.contrastAnalysis.analysisROIs);
 
     if (config.edgeAnalysis2D.multiImageList.empty()==false) {
         for (auto it=config.edgeAnalysis2D.multiImageList.begin(); it!=config.edgeAnalysis2D.multiImageList.end(); ++it) {
