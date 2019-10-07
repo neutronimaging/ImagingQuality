@@ -207,7 +207,8 @@ void NIQAMainWindow::on_button_contrast_load_clicked()
     on_slider_contrast_images_sliderMoved(m_Contrast.Size(2)/2);
 
     m_ContrastSampleAnalyzer.setImage(m_Contrast);
-
+    ui->combo_contrastplots->setCurrentIndex(0);
+    showContrastHistogram();
 
 }
 
@@ -342,6 +343,7 @@ void NIQAMainWindow::on_button_AnalyzeContrast_clicked()
     std::ostringstream msg;
     msg<<timer;
     logger.message(msg.str());
+    ui->combo_contrastplots->setCurrentIndex(1);
     on_combo_contrastplots_currentIndexChanged(1);
 }
 
@@ -544,8 +546,7 @@ void NIQAMainWindow::saveCurrent()
             return ;
         }
         std::string formattedConf = config.WriteXML();
-        std::cout<< formattedConf;
-        confFile << formattedConf; // todo
+        confFile << formattedConf;
         confFile.close();
         logger.message("Saved current recon config");
     }
