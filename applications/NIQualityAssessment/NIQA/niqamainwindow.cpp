@@ -287,8 +287,8 @@ void NIQAMainWindow::showContrastBoxPlot()
 
 void NIQAMainWindow::showContrastHistogram()
 {
-    size_t bins[16000];
-    float axis[16000];
+    std::vector<size_t> bins;
+    std::vector<float>  axis;
     int histsize=m_ContrastSampleAnalyzer.getHistogram(axis,bins);
 
     QLineSeries *series0 = new QLineSeries(); //Life time
@@ -309,8 +309,8 @@ void NIQAMainWindow::showContrastHistogram()
         }
     }
 
-    for (int i=0; i<histsize; ++i) {
-        series0->append(QPointF(axis[i]*slope+intercept,float(bins[i])));
+    for (size_t i=0; i<static_cast<size_t>(histsize); ++i) {
+        series0->append(QPointF(static_cast<qreal>(axis[i])*slope+intercept,static_cast<qreal>(bins[i])));
     }
 
     QChart *chart = new QChart(); // Life time
@@ -445,8 +445,15 @@ void NIQAMainWindow::on_button_LoadPacking_clicked()
 
     try {
         m_BallAssembly=reader.Read(loader,kipl::base::ImageFlipNone,kipl::base::ImageRotateNone,1.0f,pCrop);
-    } catch (const kipl::base::KiplException & e) {
-        QMessageBox::warning(this,"File error","Failed to load the image data. Please, check that the correct file name was provided.");
+    }
+    catch (const ReaderException &e)
+    {
+        QMessageBox::warning(this,"File error","[Reader] Failed to load the image data. Please, check that the correct file name was provided.");
+        logger.warning(e.what());
+        return;
+    }
+    catch (const kipl::base::KiplException & e) {
+        QMessageBox::warning(this,"File error","[kipl] Failed to load the image data. Please, check that the correct file name was provided.");
         logger.warning(e.what());
         return;
     }

@@ -18,7 +18,7 @@
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>2</number>
+       <number>3</number>
       </property>
       <widget class="QWidget" name="tab_ContrastAnalysis">
        <attribute name="title">
@@ -270,7 +270,7 @@
                <x>0</x>
                <y>0</y>
                <width>348</width>
-               <height>178</height>
+               <height>186</height>
               </rect>
              </property>
              <layout class="QHBoxLayout" name="horizontalLayout_20">
@@ -1017,20 +1017,22 @@
              </widget>
             </item>
             <item>
-             <widget class="QLabel" name="label_5">
-              <property name="text">
-               <string>Mark measurement ROIs</string>
+             <widget class="QGroupBox" name="groupBox_6">
+              <property name="title">
+               <string>Select ROIs to measure</string>
               </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QtAddons::ROIManager" name="widget_bundleroi" native="true">
-              <property name="minimumSize">
-               <size>
-                <width>0</width>
-                <height>125</height>
-               </size>
-              </property>
+              <layout class="QVBoxLayout" name="verticalLayout_25">
+               <item>
+                <widget class="QtAddons::ROIManager" name="widget_bundleroi" native="true">
+                 <property name="minimumSize">
+                  <size>
+                   <width>0</width>
+                   <height>125</height>
+                  </size>
+                 </property>
+                </widget>
+               </item>
+              </layout>
              </widget>
             </item>
             <item>
@@ -1041,45 +1043,17 @@
              </widget>
             </item>
             <item>
-             <widget class="QLabel" name="label_19">
-              <property name="text">
-               <string>Instructions</string>
+             <spacer name="verticalSpacer_8">
+              <property name="orientation">
+               <enum>Qt::Vertical</enum>
               </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QScrollArea" name="scrollArea_4">
-              <property name="widgetResizable">
-               <bool>true</bool>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>20</width>
+                <height>40</height>
+               </size>
               </property>
-              <widget class="QWidget" name="scrollAreaWidgetContents_4">
-               <property name="geometry">
-                <rect>
-                 <x>0</x>
-                 <y>0</y>
-                 <width>350</width>
-                 <height>123</height>
-                </rect>
-               </property>
-               <layout class="QVBoxLayout" name="verticalLayout_23">
-                <item>
-                 <widget class="QPlainTextEdit" name="plainTextEdit_4">
-                  <property name="readOnly">
-                   <bool>true</bool>
-                  </property>
-                  <property name="plainText">
-                   <string>1. Click on browse to select a set of slices containing the ball packing samples. The slice interval should have the same a height as the size of the packing diameter. 
-2. Load the images by clicking the load button.
-3. Mark an ROI for the sample assembly.
-4. Mark ROI boxes inside each ball packing and click add ROI.
-5. Add a final ROI in a constant intensity region to obtain a noise reference.
-5. Press analyse and inspect the resulting plot.</string>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </widget>
-             </widget>
+             </spacer>
             </item>
            </layout>
           </item>
@@ -1148,7 +1122,7 @@
              </widget>
             </item>
             <item>
-             <spacer name="verticalSpacer_8">
+             <spacer name="verticalSpacer_7">
               <property name="orientation">
                <enum>Qt::Vertical</enum>
               </property>
@@ -1159,6 +1133,49 @@
                </size>
               </property>
              </spacer>
+            </item>
+            <item>
+             <widget class="QGroupBox" name="groupBox_5">
+              <property name="title">
+               <string>Instructions</string>
+              </property>
+              <layout class="QVBoxLayout" name="verticalLayout_24">
+               <item>
+                <widget class="QScrollArea" name="scrollArea_4">
+                 <property name="widgetResizable">
+                  <bool>true</bool>
+                 </property>
+                 <widget class="QWidget" name="scrollAreaWidgetContents_4">
+                  <property name="geometry">
+                   <rect>
+                    <x>0</x>
+                    <y>0</y>
+                    <width>350</width>
+                    <height>186</height>
+                   </rect>
+                  </property>
+                  <layout class="QVBoxLayout" name="verticalLayout_23">
+                   <item>
+                    <widget class="QPlainTextEdit" name="plainTextEdit_4">
+                     <property name="readOnly">
+                      <bool>true</bool>
+                     </property>
+                     <property name="plainText">
+                      <string>1. Click on browse to select a set of slices containing the ball packing samples. The slice interval should have the same a height as the size of the packing diameter. 
+2. Load the images by clicking the load button.
+3. Mark an ROI for the sample assembly.
+4. Mark ROI boxes inside each ball packing and click add ROI.
+5. Add a final ROI in a constant intensity region to obtain a noise reference.
+5. Press analyse and inspect the resulting plot.</string>
+                     </property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </widget>
+                </widget>
+               </item>
+              </layout>
+             </widget>
             </item>
            </layout>
           </item>
