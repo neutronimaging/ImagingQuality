@@ -275,11 +275,15 @@ void NIQAMainWindow::showContrastBoxPlot()
     QChart *chart = new QChart(); // Life time
     std::vector<kipl::math::Statistics> stats=m_ContrastSampleAnalyzer.getStatistics();
 
+    std::vector<QString> insetLbl;
+    if (stats[1].E()/stats[0].E()<0.5)
+        insetLbl = {"Ni","Al","Cu","Pb","Ti","Fe"};
+    else
+        insetLbl = {"Ni","Fe","Ti","Pb","Cu","Al"};
+
+    QBoxPlotSeries *insetSeries = new QBoxPlotSeries();
     for (int i=0; i<6; ++i) {
-        QBoxPlotSeries *insetSeries = new QBoxPlotSeries();
-        msg.str("");
-        msg<<"Inset "<<i+1;
-        QBoxSet *set = new QBoxSet(QString::fromStdString(msg.str()));
+        QBoxSet *set = new QBoxSet(insetLbl[i]);
 
         double slope=1.0;
         double intercept=0.0;
