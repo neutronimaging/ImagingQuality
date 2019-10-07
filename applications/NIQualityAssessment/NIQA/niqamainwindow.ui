@@ -549,7 +549,7 @@
                  <bool>false</bool>
                 </property>
                 <property name="plainText">
-                 <string>1. Select edge images by clicking on the Add button. You can select multiple images in the dialog. For each image you will be prompted for the distance from scintillator.
+                 <string>1. Select edge images by clicking on the Add button. You can select multiple images in the dialog. For each image you will be prompted for the distance from scintillator (must be non-zero).
 2. Set the pixel size. The pixel size button helps you to measure the pixel size.
 3. Normalization is currently not implemented.
 4. Cropping may make sense to make it easier to find the edge.
