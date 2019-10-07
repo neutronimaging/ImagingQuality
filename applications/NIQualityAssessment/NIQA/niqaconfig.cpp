@@ -252,6 +252,31 @@ void NIQAConfig::ParseContrastAnalysis(xmlTextReaderPtr reader)
                 contrastAnalysis.intensityMax = std::stod(sValue);
             }
 
+            if (sName=="roilist") {
+                std::list<std::string> strlist;
+                kipl::strings::String2List(sValue,strlist);
+                std::ostringstream msg;
+                ballPackingAnalysis.analysisROIs.clear();
+
+                msg<<"strlist.size: "<<strlist.size()<<", sValue: "<<sValue;
+                logger.message(msg.str());
+                if ((strlist.size() % 4 != 0) || (strlist.empty()==true)){
+                    logger.error("Incomplete roi list");
+                    throw kipl::base::KiplException("Incomplete ROI list",__FILE__,__LINE__);
+                }
+
+                for (auto it=strlist.begin(); it!=strlist.end(); ++it) {
+                    size_t temproi[4];
+                    temproi[0] = std::stoi(*it); ++it;
+                    temproi[1] = std::stoi(*it); ++it;
+                    temproi[2] = std::stoi(*it); ++it;
+                    temproi[3] = std::stoi(*it);
+                    kipl::base::RectROI roi(temproi);
+                    ballPackingAnalysis.analysisROIs.push_back(roi);
+                }
+
+            }
+
             if (sName=="makereport") {
                 contrastAnalysis.makeReport = kipl::strings::string2bool(sValue);
             }
@@ -608,6 +633,7 @@ NIQAConfig::ContrastAnalysis::ContrastAnalysis(const ContrastAnalysis & c) :
     pixelSize(c.pixelSize),
     intensitySlope(c.intensitySlope),
     intensityIntercept(c.intensityIntercept),
+    analysisROIs(c.analysisROIs),
     makeReport(c.makeReport)
 {
 
@@ -615,14 +641,15 @@ NIQAConfig::ContrastAnalysis::ContrastAnalysis(const ContrastAnalysis & c) :
 
 const NIQAConfig::ContrastAnalysis & NIQAConfig::ContrastAnalysis::operator=(const NIQAConfig::ContrastAnalysis &c)
 {
-        fileMask=c.fileMask;
-        first=c.first;
-        last=c.last;
-        step=c.step;
-        pixelSize=c.pixelSize;
-        intensitySlope=c.intensitySlope;
-        intensityIntercept=c.intensityIntercept;
-        makeReport=c.makeReport;
+        fileMask           = c.fileMask;
+        first              = c.first;
+        last               = c.last;
+        step               = c.step;
+        pixelSize          = c.pixelSize;
+        intensitySlope     = c.intensitySlope;
+        intensityIntercept = c.intensityIntercept;
+        makeReport         = c.makeReport;
+        analysisROIs       = c.analysisROIs;
 
         return *this;
 }
@@ -641,6 +668,10 @@ std::string NIQAConfig::ContrastAnalysis::WriteXML(size_t indent)
         str<<std::setw(indent+4)  <<" "<<"<intensityintercept>"<<kipl::strings::value2string(intensityIntercept)<<"</intensityintercept>\n";
         str<<std::setw(indent+4)  <<" "<<"<intensitymin>"<<kipl::strings::value2string(intensityMin)<<"</intensitymin>\n";
         str<<std::setw(indent+4)  <<" "<<"<intensitymax>"<<kipl::strings::value2string(intensityMax)<<"</intensitymax>\n";
+        str<<std::setw(indent+4)  <<" "<<"<roilist>";
+        for (auto it=analysisROIs.begin(); it!=analysisROIs.end(); ++it)
+            str<<(it==analysisROIs.begin() ? "":" ")<<it->toString();
+        str<<"</roilist>\n";
         str<<std::setw(indent+4)  <<" "<<"<makereport>"<<kipl::strings::bool2string(makeReport)<<"</makereport>\n";
     str<<std::setw(indent)  <<" "<<"</contrastanalysis>"<<std::endl;
 
