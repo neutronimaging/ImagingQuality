@@ -105,6 +105,8 @@ private slots:
 
     void on_actionLogging_triggered();
 
+    void on_button_bigball_analyze_clicked();
+
 private:
     void showContrastBoxPlot();
     void showContrastHistogram();

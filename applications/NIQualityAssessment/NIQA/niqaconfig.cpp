@@ -34,7 +34,7 @@ const NIQAConfig & NIQAConfig::operator=(const NIQAConfig &c)
     return *this;
 }
 
-std::string NIQAConfig::WriteXML()
+const std::string NIQAConfig::WriteXML()
 {
     std::ostringstream str;
 
@@ -256,7 +256,7 @@ void NIQAConfig::ParseContrastAnalysis(xmlTextReaderPtr reader)
                 std::list<std::string> strlist;
                 kipl::strings::String2List(sValue,strlist);
                 std::ostringstream msg;
-                ballPackingAnalysis.analysisROIs.clear();
+                contrastAnalysis.analysisROIs.clear();
 
                 msg<<"strlist.size: "<<strlist.size()<<", sValue: "<<sValue;
                 logger.message(msg.str());
@@ -272,7 +272,7 @@ void NIQAConfig::ParseContrastAnalysis(xmlTextReaderPtr reader)
                     temproi[2] = std::stoi(*it); ++it;
                     temproi[3] = std::stoi(*it);
                     kipl::base::RectROI roi(temproi);
-                    ballPackingAnalysis.analysisROIs.push_back(roi);
+                    contrastAnalysis.analysisROIs.push_back(roi);
                 }
 
             }

@@ -4,8 +4,10 @@
 #include "ui_niqamainwindow.h"
 
 #include <sstream>
+#include <fstream>
 #include <array>
 #include <numeric>
+#include <cmath>
 
 #include <QSignalBlocker>
 #include <QLineSeries>
@@ -23,6 +25,7 @@
 
 #include <datasetbase.h>
 #include <imagereader.h>
+#include <readerexception.h>
 #include <base/tprofile.h>
 #include <math/basicprojector.h>
 #include <pixelsizedlg.h>
@@ -36,7 +39,8 @@
 #include <stltools/stlvecmath.h>
 #include <readerexception.h>
 #include <base/KiplException.h>
-
+#include <qglyphs.h>
+#include <qmarker.h>
 
 #include "edgefileitemdialog.h"
 #include "reportmaker.h"
@@ -72,7 +76,7 @@ NIQAMainWindow::NIQAMainWindow(QWidget *parent) :
     configFileName("niqaconfig.xml")
 {
     ui->setupUi(this);
-  //  ui->groupBox_2Dreferences->hide(); // TODO implement normalization of edge images
+    ui->groupBox_2Dreferences->hide(); // TODO implement normalization of edge images
 
     // Setup logging dialog
     logdlg->setModal(false);
@@ -125,43 +129,6 @@ void NIQAMainWindow::on_button_bigball_load_clicked()
     ui->slider_bigball_slice->setValue(m_BigBall.Size(2)/2);
     on_slider_bigball_slice_sliderMoved(m_BigBall.Size(2)/2);
 
-    m_BallAnalyzer.setImage(m_BigBall);
-    float R=m_BallAnalyzer.getRadius();
-
-    kipl::base::coords3Df center=m_BallAnalyzer.getCenter();
-
-    std::ostringstream msg;
-    msg<<"["<<center.x<<", "<<center.y<<", "<<center.z<<"]";
-    ui->label_bigball_center->setText(QString::fromStdString(msg.str()));
-
-    msg.str("");
-    msg<<R<<" pixels = "<<R*ui->dspin_bigball_pixelsize->value();
-    ui->label_bigball_radius->setText(QString::fromStdString(msg.str()));
-
-    float width2=ui->dspin_bigball_profileWidth->value()*0.5;
-    m_BallAnalyzer.getEdgeProfile(R-width2,R+width2,m_edge3DDistance,m_edge3DProfile,m_edge3DStdDev);
-
-    size_t profileWidth2=m_edge3DProfile.size()/2;
-    float s0=std::accumulate(m_edge3DProfile.begin(),m_edge3DProfile.begin()+profileWidth2-1,0.0f);
-    float s1=std::accumulate(m_edge3DProfile.begin()+profileWidth2,m_edge3DProfile.end(),0.0f);
-
-    float sign= s0<s1 ? 1.0f : -1.0f;
-    m_edge3DDprofile.clear();
-
-    for (size_t i=1; i<m_edge3DProfile.size(); ++i)
-        m_edge3DDprofile.push_back(sign*(m_edge3DProfile[i]-m_edge3DProfile[i-1]));
-
-    m_edge3DDprofile.push_back(m_edge3DDprofile.back());
-
-    Nonlinear::SumOfGaussians sog;
-    std::vector<float> sig;
-
-    fitEdgeProfile(m_edge3DDistance,m_edge3DDprofile,sig,sog);
-    msg.str("");
-    msg<<sog[2]*2<<"pixels, "<<sog[2]*2*ui->dspin_bigball_pixelsize->value()<<" mm";
-    ui->label_bigball_FWHM->setText(QString::fromStdString(msg.str()));
-
-    plot3DEdgeProfiles(ui->comboBox_bigball_plotinformation->currentIndex());
 
 }
 
@@ -183,16 +150,12 @@ void NIQAMainWindow::plot3DEdgeProfiles(int index)
 
     qDebug() << "plot 3d edge" <<index;
     for (auto dit=m_edge3DDistance.begin(), pit=profile.begin(); pit!=profile.end(); ++dit, ++pit) {
-        series0->append(QPointF(*dit,*pit));
+        series0->append(QPointF((*dit)*config.edgeAnalysis3D.pixelSize,*pit));
     }
 
-    QChart *chart = new QChart();
-
-    chart->addSeries(series0);
-    chart->legend()->hide();
-    chart->createDefaultAxes();
-
-    ui->chart_bigball->setChart(chart);
+    ui->chart_bigball->setCurveData(0,series0,"Global edge");
+    ui->chart_bigball->hideLegend();
+    ui->chart_bigball->setXLabel("Position [mm]");
 }
 
 void NIQAMainWindow::on_slider_bigball_slice_sliderMoved(int position)
@@ -222,14 +185,20 @@ void NIQAMainWindow::on_button_contrast_load_clicked()
 
     msg<<loader.m_sFilemask<<loader.m_nFirst<<", "<<loader.m_nLast;
     logger(logger.LogMessage,msg.str());
-    try {
+    try
+    {
         m_Contrast=reader.Read(loader,kipl::base::ImageFlipNone,kipl::base::ImageRotateNone,1.0f,nullptr);
-    } catch (const kipl::base::KiplException & e) {
-        QMessageBox::warning(this,"File error","Failed to load the image data. Please, check that the correct file name was provided.");
-        logger.warning(e.what());
-        return;
     }
-
+    catch (ReaderException &e)
+    {
+        QMessageBox::warning(this,"Load images failed",e.what());
+        return ;
+    }
+    catch (kipl::base::KiplException &e)
+    {
+        QMessageBox::warning(this,"Load images failed",e.what());
+        return ;
+    }
     ui->slider_contrast_images->setMinimum(0);
     ui->slider_contrast_images->setMaximum(m_Contrast.Size(2)-1);
     ui->slider_contrast_images->setValue((m_Contrast.Size(2)-1)/2);
@@ -239,7 +208,8 @@ void NIQAMainWindow::on_button_contrast_load_clicked()
     on_slider_contrast_images_sliderMoved(m_Contrast.Size(2)/2);
 
     m_ContrastSampleAnalyzer.setImage(m_Contrast);
-
+    showContrastHistogram();
+    ui->widget_insetrois->updateViewer();
 
 }
 
@@ -283,18 +253,22 @@ void NIQAMainWindow::showContrastBoxPlot()
         insetLbl = {"Ni","Fe","Ti","Pb","Cu","Al"};
 
     QBoxPlotSeries *insetSeries = new QBoxPlotSeries();
-    for (int i=0; i<6; ++i) {
+    for (int i=0; i<6; ++i)
+    {
         QBoxSet *set = new QBoxSet(insetLbl[i]);
 
         double slope=1.0;
         double intercept=0.0;
 
-        if (ui->groupBox_contrast_intensityMapping->isChecked()==true) {
-            if (ui->radioButton_contrast_scaling->isChecked()==true) {
+        if (ui->groupBox_contrast_intensityMapping->isChecked()==true)
+        {
+            if (ui->radioButton_contrast_scaling->isChecked()==true)
+            {
                 slope=ui->spin_contrast_intensity0->value();
                 intercept=ui->spin_contrast_intensity1->value();
             }
-            if (ui->radioButton_contrast_interval->isChecked()==true) {
+            if (ui->radioButton_contrast_interval->isChecked()==true)
+            {
                 double a=ui->spin_contrast_intensity0->value();
                 double b=ui->spin_contrast_intensity1->value();
                 slope=(b-a)/65535;
@@ -307,56 +281,66 @@ void NIQAMainWindow::showContrastBoxPlot()
         set->setValue(QBoxSet::UpperQuartile,(stats[i].E()+stats[i].s()*1.96f)*slope+intercept);
         set->setValue(QBoxSet::Median,(stats[i].E())*slope+intercept);
         insetSeries->append(set);
-
-        chart->addSeries(insetSeries);
     }
+    chart->addSeries(insetSeries);
 
     chart->legend()->hide();
     chart->createDefaultAxes();
-
-    chart->legend()->hide();
-    chart->createDefaultAxes();
+    chart->axes(Qt::Horizontal)[0]->setTitleText("Elements");
 
     ui->chart_contrast->setChart(chart);
 }
 
 void NIQAMainWindow::showContrastHistogram()
 {
-    size_t bins[16000];
-    float axis[16000];
-    int histsize=m_ContrastSampleAnalyzer.getHistogram(axis,bins);
-
-    QLineSeries *series0 = new QLineSeries(); //Life time
+    std::vector<size_t> bins;
+    std::vector<float>  axis;
+    m_ContrastSampleAnalyzer.getHistogram(axis,bins);
 
     double slope=1.0;
     double intercept=0.0;
 
-    if (ui->groupBox_contrast_intensityMapping->isChecked()==true) {
-        if (ui->radioButton_contrast_scaling->isChecked()==true) {
+    if (ui->groupBox_contrast_intensityMapping->isChecked()==true)
+    {
+        if (ui->radioButton_contrast_scaling->isChecked()==true)
+        {
             slope=ui->spin_contrast_intensity0->value();
             intercept=ui->spin_contrast_intensity1->value();
         }
-        if (ui->radioButton_contrast_interval->isChecked()==true) {
+        if (ui->radioButton_contrast_interval->isChecked()==true)
+        {
             double a=ui->spin_contrast_intensity0->value();
             double b=ui->spin_contrast_intensity1->value();
             slope=(b-a)/65535;
             intercept=a;
         }
+        for (auto & x : axis)
+            x = x*slope+intercept;
     }
 
-    for (int i=0; i<histsize; ++i) {
-        series0->append(QPointF(axis[i]*slope+intercept,float(bins[i])));
+    QLineSeries *series0 = new QLineSeries();
+
+    if (axis.size() == bins.size())
+    {
+        auto axisItem = axis.begin();
+        auto binItem  = bins.begin();
+
+        for (; axisItem !=axis.end(); ++axisItem, ++binItem)
+        {
+            series0->append(QPointF(static_cast<qreal>(*axisItem),static_cast<qreal>(*binItem)));
+        }
+
+    }
+    else
+    {
+        logger.warning("Histogram vectors were not equal size.");
+        return;
     }
 
-    QChart *chart = new QChart(); // Life time
-
-    chart->addSeries(series0);
-    chart->legend()->hide();
-    chart->createDefaultAxes();
-//    chart->axisX()->setRange(0, 20);
-//    chart->axisY()->setRange(0, 10);
-
-    ui->chart_contrast->setChart(chart);
+    ui->chart_contrastHistogram->setCurveData(0,series0);
+    ui->chart_contrastHistogram->setXLabel("Image intensity");
+    ui->chart_contrastHistogram->setTitle("Histogram");
+    ui->chart_contrastHistogram->hideLegend();
 }
 
 void NIQAMainWindow::on_button_AnalyzeContrast_clicked()
@@ -378,7 +362,16 @@ void NIQAMainWindow::on_button_AnalyzeContrast_clicked()
     std::ostringstream msg;
     msg<<timer;
     logger.message(msg.str());
-    on_combo_contrastplots_currentIndexChanged(1);
+    showContrastBoxPlot();
+    auto insetPositions = m_ContrastSampleAnalyzer.getInsetCoordinates();
+    qDebug() << "Inset positions size"<<insetPositions.size();
+    int idx=0;
+    for (const auto &pos : insetPositions)
+    {
+        ui->viewer_contrast->set_marker(QtAddons::QMarker(QtAddons::PlotGlyph_Plus,QPointF(pos.x,pos.y) , QColor("red")),idx++);
+    }
+    auto pos = m_ContrastSampleAnalyzer.centerCoordinate();
+    ui->viewer_contrast->set_marker(QtAddons::QMarker(QtAddons::PlotGlyph_Plus,QPointF(pos.x,pos.y) , QColor("yellow")),idx++);
 }
 
 void NIQAMainWindow::on_button_addEdgeFile_clicked()
@@ -481,8 +474,15 @@ void NIQAMainWindow::on_button_LoadPacking_clicked()
 
     try {
         m_BallAssembly=reader.Read(loader,kipl::base::ImageFlipNone,kipl::base::ImageRotateNone,1.0f,pCrop);
-    } catch (const kipl::base::KiplException & e) {
-        QMessageBox::warning(this,"File error","Failed to load the image data. Please, check that the correct file name was provided.");
+    }
+    catch (const ReaderException &e)
+    {
+        QMessageBox::warning(this,"File error","[Reader] Failed to load the image data. Please, check that the correct file name was provided.");
+        logger.warning(e.what());
+        return;
+    }
+    catch (const kipl::base::KiplException & e) {
+        QMessageBox::warning(this,"File error","[kipl] Failed to load the image data. Please, check that the correct file name was provided.");
         logger.warning(e.what());
         return;
     }
@@ -537,18 +537,9 @@ void NIQAMainWindow::plotPackingStatistics(std::list<kipl::math::Statistics> &ro
         series0->append(QPointF(++pos,point));
     }
 
-    QChart *chart = new QChart(); // Life time
-
-
-    chart->addSeries(series0);
-    chart->legend()->hide();
-    chart->createDefaultAxes();
-//    chart->axisX()->setRange(0, 20);
-//    chart->axisY()->setRange(0, 10);
-
-    ui->chart_packing->setChart(chart);
-
-
+    ui->chart_packing->setCurveData(0,series0);
+    ui->chart_packing->setXLabel("Ball diameter [mm]");
+    ui->chart_packing->setYLabel("StdDev");
 }
 
 
@@ -570,18 +561,20 @@ void NIQAMainWindow::saveCurrent()
     kipl::strings::filenames::CheckPathSlashes(sPath,true);
     confpath<<sPath<<"CurrentNIQA.xml";
 
-    try {
+    try
+    {
         updateConfig();
-        ofstream of(confpath.str().c_str());
-        if (!of.is_open()) {
+        std::ofstream confFile(confpath.str().c_str());
+        if (!confFile.is_open())
+        {
             msg.str("");
             msg<<"Failed to open config file: "<<confpath.str()<<" for writing.";
             logger.error(msg.str());
             return ;
         }
-
-        of<<config.WriteXML();
-        of.flush();
+        std::string formattedConf = config.WriteXML();
+        confFile << formattedConf;
+        confFile.close();
         logger.message("Saved current recon config");
     }
     catch (kipl::base::KiplException &e) {
@@ -760,6 +753,7 @@ void NIQAMainWindow::updateDialog()
     ui->spin_contrast_pixelsize->setValue(config.contrastAnalysis.pixelSize);
     ui->checkBox_reportContrast->setChecked(config.contrastAnalysis.makeReport);
     ui->widget_insetrois->setROIs(config.contrastAnalysis.analysisROIs);
+    ui->widget_insetrois->updateViewer();
 
     if (config.edgeAnalysis2D.multiImageList.empty()==false) {
         for (auto it=config.edgeAnalysis2D.multiImageList.begin(); it!=config.edgeAnalysis2D.multiImageList.end(); ++it) {
@@ -816,17 +810,27 @@ void NIQAMainWindow::updateDialog()
     ui->imageloader_packing->setReaderConfig(loader);
     ui->widget_roi3DBalls->setChecked(config.ballPackingAnalysis.useCrop);
     ui->widget_bundleroi->setROIs(config.ballPackingAnalysis.analysisROIs);
+    ui->widget_bundleroi->updateViewer();
     ui->widget_roi3DBalls->setROI(config.ballPackingAnalysis.roi);
     ui->checkBox_reportBallPacking->setChecked(config.ballPackingAnalysis.makeReport);
 }
 
 void NIQAMainWindow::saveConfig(std::string fname)
 {
+    std::ostringstream msg;
     updateConfig();
     configFileName=fname;
-    std::ofstream conffile(configFileName.c_str());
+    std::ofstream confFile(configFileName.c_str());
 
-    conffile<<config.WriteXML();
+    if (!confFile.is_open())
+    {
+        msg.str("");
+        msg<<"Failed to open config file: "<<configFileName<<" for writing.";
+        logger.error(msg.str());
+        return ;
+    }
+    confFile<<config.WriteXML();
+    confFile.close();
 }
 
 void NIQAMainWindow::on_slider_PackingImages_sliderMoved(int position)
@@ -934,10 +938,11 @@ void NIQAMainWindow::on_button_estimateCollimation_clicked()
         series->append(QPointF(distance,width));
     }
 
+    ui->chart_collimation->setCurveData(0,series,"Measured");
     kipl::math::weightedLSFit(H,C,y,param);
 
-    float res = sqrt(param[0][0]);
-    float LD  = 1.0/sqrt(param[1][0]);
+    double res = sqrt(param[0][0]);
+    double LD  = 1.0/sqrt(param[1][0]);
     QString text;
     QTextStream(&text) << "Intrinsic resolution:" << res << " L/D:" <<LD;
     qDebug() << "param[0]:" << res << "param[1]:" <<LD;
@@ -946,19 +951,12 @@ void NIQAMainWindow::on_button_estimateCollimation_clicked()
     TNT::Array2D<double> fit=TNT::matmult(H,param);
     QLineSeries *fit_series = new QLineSeries();
     for (int i=0 ; i<N ; ++i) {
-        float distance = sqrt(H[i][1]);
-        float width    = sqrt(fit[i][0]);
+        double distance = sqrt(H[i][1]);
+        double width    = sqrt(fit[i][0]);
         fit_series->append(QPointF(distance,width));
     }
 
-
-    QChart *chart = new QChart;
-    chart->addSeries(series);
-    chart->addSeries(fit_series);
-    chart->legend()->hide();
-    chart->createDefaultAxes();
-
-    ui->chart_collimation->setChart(chart);
+    ui->chart_collimation->setCurveData(1,fit_series,"Fitted");
 
 }
 
@@ -1183,27 +1181,33 @@ void NIQAMainWindow::fitEdgeProfile(TNT::Array1D<double> &dataX, TNT::Array1D<do
 void NIQAMainWindow::plotEdgeProfiles()
 {
     std::ostringstream msg;
-    QChart *chart = new QChart(); // Life time
-    int idx=0;
 
-    if (ui->comboBox_edgePlotType->currentIndex()==0) {
-        for (auto it = m_Edges2D.begin(); it!=m_Edges2D.end(); ++it,++idx) {
-            QLineSeries *series = new QLineSeries();
+    ui->chart_2Dedges->clearAllCurves();
+    int idx=0;
+    if (ui->comboBox_edgePlotType->currentIndex()==0)
+    {
+        for (auto it = m_Edges2D.begin(); it!=m_Edges2D.end(); ++it,++idx)
+        {
+            QLineSeries *series = new QLineSeries(); //Life time
+
             msg.str("");
             msg<<it->first<<"mm";
             series->setName(msg.str().c_str());
+
             auto edge=it->second;
 
             for (auto dit=edge.begin(); dit!=edge.end(); ++dit)
             {
                 series->append(static_cast<qreal>(dit->first),static_cast<qreal>(dit->second));
             }
-            chart->addSeries(series);
+            ui->chart_2Dedges->setCurveData(idx,series);
         }
     }
-    else {
+    else
+    {
 
-        for (auto it = m_DEdges2D.begin(); it!=m_DEdges2D.end(); ++it,++idx) {
+        for (auto it = m_DEdges2D.begin(); it!=m_DEdges2D.end(); ++it,++idx)
+        {
             QLineSeries *series = new QLineSeries(); //Life time
 
             msg.str("");
@@ -1218,13 +1222,9 @@ void NIQAMainWindow::plotEdgeProfiles()
                 series->append(static_cast<qreal>(dit->first), static_cast<qreal>(dit->second));
             }
 
-            chart->addSeries(series);
+            ui->chart_2Dedges->setCurveData(idx,series);
         }
     }
-  //  chart->legend()->hide();
-    chart->createDefaultAxes();
-
-    ui->chart_2Dedges->setChart(chart);
 }
 
 void NIQAMainWindow::on_widget_roi3DBalls_getROIclicked()
@@ -1366,7 +1366,7 @@ void NIQAMainWindow::on_pushButton_createReport_clicked()
         EdgeInfoListItem *item=dynamic_cast<EdgeInfoListItem *>(ui->listWidget_edgeInfo->item(i));
         edges.insert(std::make_pair(item->distance,item->FWHMmetric));
     }
-    report.addEdge2DInfo(ui->chart_2Dedges,ui->chart_collimation,edges);
+   // report.addEdge2DInfo(ui->chart_2Dedges,ui->chart_collimation,edges);
     report.makeReport(QString::fromStdString(config.userInformation.reportName),config);
 
 }
@@ -1493,4 +1493,46 @@ void NIQAMainWindow::on_actionLogging_triggered()
         else {
             logdlg->hide();
         }
+}
+
+void NIQAMainWindow::on_button_bigball_analyze_clicked()
+{
+    m_BallAnalyzer.setImage(m_BigBall);
+    float R=m_BallAnalyzer.getRadius();
+
+    kipl::base::coords3Df center=m_BallAnalyzer.getCenter();
+
+    std::ostringstream msg;
+    msg<<"["<<center.x<<", "<<center.y<<", "<<center.z<<"]";
+    ui->label_bigball_center->setText(QString::fromStdString(msg.str()));
+
+    msg.str("");
+    msg<<R<<" pixels = "<<R*ui->dspin_bigball_pixelsize->value();
+    ui->label_bigball_radius->setText(QString::fromStdString(msg.str()));
+
+    float width2=ui->dspin_bigball_profileWidth->value()*0.5;
+    m_BallAnalyzer.getEdgeProfile(R-width2,R+width2,m_edge3DDistance,m_edge3DProfile,m_edge3DStdDev);
+
+    size_t profileWidth2=m_edge3DProfile.size()/2;
+    float s0=std::accumulate(m_edge3DProfile.begin(),m_edge3DProfile.begin()+profileWidth2-1,0.0f);
+    float s1=std::accumulate(m_edge3DProfile.begin()+profileWidth2,m_edge3DProfile.end(),0.0f);
+
+    float sign= s0<s1 ? 1.0f : -1.0f;
+    m_edge3DDprofile.clear();
+
+    for (size_t i=1; i<m_edge3DProfile.size(); ++i)
+        m_edge3DDprofile.push_back(sign*(m_edge3DProfile[i]-m_edge3DProfile[i-1]));
+
+    m_edge3DDprofile.push_back(m_edge3DDprofile.back());
+
+    Nonlinear::SumOfGaussians sog;
+    std::vector<float> sig;
+
+    fitEdgeProfile(m_edge3DDistance,m_edge3DDprofile,sig,sog);
+    msg.str("");
+    msg<<sog[2]*2<<"pixels, "<<sog[2]*2*ui->dspin_bigball_pixelsize->value()<<" mm";
+    ui->label_bigball_FWHM->setText(QString::fromStdString(msg.str()));
+
+    plot3DEdgeProfiles(ui->comboBox_bigball_plotinformation->currentIndex());
+
 }
