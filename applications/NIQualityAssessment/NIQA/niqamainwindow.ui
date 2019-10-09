@@ -18,7 +18,7 @@
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>3</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="tab_ContrastAnalysis">
        <attribute name="title">
@@ -310,37 +310,20 @@
             <property name="minimumSize">
              <size>
               <width>350</width>
-              <height>350</height>
+              <height>300</height>
              </size>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QComboBox" name="combo_contrastplots">
-            <item>
-             <property name="text">
-              <string>Histogram</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>Inset statistics</string>
-             </property>
-            </item>
-           </widget>
-          </item>
-          <item>
-           <spacer name="verticalSpacer_6">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
+           <widget class="QtAddons::PlotWidget" name="chart_contrastHistogram" native="true">
+            <property name="minimumSize">
              <size>
-              <width>20</width>
-              <height>40</height>
+              <width>0</width>
+              <height>300</height>
              </size>
             </property>
-           </spacer>
+           </widget>
           </item>
          </layout>
         </item>
@@ -1151,7 +1134,7 @@
                     <x>0</x>
                     <y>0</y>
                     <width>350</width>
-                    <height>186</height>
+                    <height>194</height>
                    </rect>
                   </property>
                   <layout class="QVBoxLayout" name="verticalLayout_23">

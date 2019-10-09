@@ -39,7 +39,8 @@
 #include <stltools/stlvecmath.h>
 #include <readerexception.h>
 #include <base/KiplException.h>
-
+#include <qglyphs.h>
+#include <qmarker.h>
 
 #include "edgefileitemdialog.h"
 #include "reportmaker.h"
@@ -207,8 +208,8 @@ void NIQAMainWindow::on_button_contrast_load_clicked()
     on_slider_contrast_images_sliderMoved(m_Contrast.Size(2)/2);
 
     m_ContrastSampleAnalyzer.setImage(m_Contrast);
-    ui->combo_contrastplots->setCurrentIndex(0);
     showContrastHistogram();
+    ui->widget_insetrois->updateViewer();
 
 }
 
@@ -252,18 +253,22 @@ void NIQAMainWindow::showContrastBoxPlot()
         insetLbl = {"Ni","Fe","Ti","Pb","Cu","Al"};
 
     QBoxPlotSeries *insetSeries = new QBoxPlotSeries();
-    for (int i=0; i<6; ++i) {
+    for (int i=0; i<6; ++i)
+    {
         QBoxSet *set = new QBoxSet(insetLbl[i]);
 
         double slope=1.0;
         double intercept=0.0;
 
-        if (ui->groupBox_contrast_intensityMapping->isChecked()==true) {
-            if (ui->radioButton_contrast_scaling->isChecked()==true) {
+        if (ui->groupBox_contrast_intensityMapping->isChecked()==true)
+        {
+            if (ui->radioButton_contrast_scaling->isChecked()==true)
+            {
                 slope=ui->spin_contrast_intensity0->value();
                 intercept=ui->spin_contrast_intensity1->value();
             }
-            if (ui->radioButton_contrast_interval->isChecked()==true) {
+            if (ui->radioButton_contrast_interval->isChecked()==true)
+            {
                 double a=ui->spin_contrast_intensity0->value();
                 double b=ui->spin_contrast_intensity1->value();
                 slope=(b-a)/65535;
@@ -276,16 +281,12 @@ void NIQAMainWindow::showContrastBoxPlot()
         set->setValue(QBoxSet::UpperQuartile,(stats[i].E()+stats[i].s()*1.96f)*slope+intercept);
         set->setValue(QBoxSet::Median,(stats[i].E())*slope+intercept);
         insetSeries->append(set);
-
-        chart->addSeries(insetSeries);
     }
+    chart->addSeries(insetSeries);
 
     chart->legend()->hide();
     chart->createDefaultAxes();
-
-    chart->legend()->hide();
-    chart->createDefaultAxes();
-    chart->axisX()->setTitleText("Elements");
+    chart->axes(Qt::Horizontal)[0]->setTitleText("Elements");
 
     ui->chart_contrast->setChart(chart);
 }
@@ -294,38 +295,52 @@ void NIQAMainWindow::showContrastHistogram()
 {
     std::vector<size_t> bins;
     std::vector<float>  axis;
-    int histsize=m_ContrastSampleAnalyzer.getHistogram(axis,bins);
-
-    QLineSeries *series0 = new QLineSeries(); //Life time
+    m_ContrastSampleAnalyzer.getHistogram(axis,bins);
 
     double slope=1.0;
     double intercept=0.0;
 
-    if (ui->groupBox_contrast_intensityMapping->isChecked()==true) {
-        if (ui->radioButton_contrast_scaling->isChecked()==true) {
+    if (ui->groupBox_contrast_intensityMapping->isChecked()==true)
+    {
+        if (ui->radioButton_contrast_scaling->isChecked()==true)
+        {
             slope=ui->spin_contrast_intensity0->value();
             intercept=ui->spin_contrast_intensity1->value();
         }
-        if (ui->radioButton_contrast_interval->isChecked()==true) {
+        if (ui->radioButton_contrast_interval->isChecked()==true)
+        {
             double a=ui->spin_contrast_intensity0->value();
             double b=ui->spin_contrast_intensity1->value();
             slope=(b-a)/65535;
             intercept=a;
         }
+        for (auto & x : axis)
+            x = x*slope+intercept;
     }
 
-    for (size_t i=0; i<static_cast<size_t>(histsize); ++i) {
-        series0->append(QPointF(static_cast<qreal>(axis[i])*slope+intercept,static_cast<qreal>(bins[i])));
+    QLineSeries *series0 = new QLineSeries();
+
+    if (axis.size() == bins.size())
+    {
+        auto axisItem = axis.begin();
+        auto binItem  = bins.begin();
+
+        for (; axisItem !=axis.end(); ++axisItem, ++binItem)
+        {
+            series0->append(QPointF(static_cast<qreal>(*axisItem),static_cast<qreal>(*binItem)));
+        }
+
+    }
+    else
+    {
+        logger.warning("Histogram vectors were not equal size.");
+        return;
     }
 
-    QChart *chart = new QChart(); // Life time
-
-    chart->addSeries(series0);
-    chart->legend()->hide();
-    chart->createDefaultAxes();
-    chart->axisX()->setTitleText("Image intensity");
-
-    ui->chart_contrast->setChart(chart);
+    ui->chart_contrastHistogram->setCurveData(0,series0);
+    ui->chart_contrastHistogram->setXLabel("Image intensity");
+    ui->chart_contrastHistogram->setTitle("Histogram");
+    ui->chart_contrastHistogram->hideLegend();
 }
 
 void NIQAMainWindow::on_button_AnalyzeContrast_clicked()
@@ -347,8 +362,16 @@ void NIQAMainWindow::on_button_AnalyzeContrast_clicked()
     std::ostringstream msg;
     msg<<timer;
     logger.message(msg.str());
-    ui->combo_contrastplots->setCurrentIndex(1);
-    on_combo_contrastplots_currentIndexChanged(1);
+    showContrastBoxPlot();
+    auto insetPositions = m_ContrastSampleAnalyzer.getInsetCoordinates();
+    qDebug() << "Inset positions size"<<insetPositions.size();
+    int idx=0;
+    for (const auto &pos : insetPositions)
+    {
+        ui->viewer_contrast->set_marker(QtAddons::QMarker(QtAddons::PlotGlyph_Plus,QPointF(pos.x,pos.y) , QColor("red")),idx++);
+    }
+    auto pos = m_ContrastSampleAnalyzer.centerCoordinate();
+    ui->viewer_contrast->set_marker(QtAddons::QMarker(QtAddons::PlotGlyph_Plus,QPointF(pos.x,pos.y) , QColor("yellow")),idx++);
 }
 
 void NIQAMainWindow::on_button_addEdgeFile_clicked()
@@ -730,6 +753,7 @@ void NIQAMainWindow::updateDialog()
     ui->spin_contrast_pixelsize->setValue(config.contrastAnalysis.pixelSize);
     ui->checkBox_reportContrast->setChecked(config.contrastAnalysis.makeReport);
     ui->widget_insetrois->setROIs(config.contrastAnalysis.analysisROIs);
+    ui->widget_insetrois->updateViewer();
 
     if (config.edgeAnalysis2D.multiImageList.empty()==false) {
         for (auto it=config.edgeAnalysis2D.multiImageList.begin(); it!=config.edgeAnalysis2D.multiImageList.end(); ++it) {
@@ -786,6 +810,7 @@ void NIQAMainWindow::updateDialog()
     ui->imageloader_packing->setReaderConfig(loader);
     ui->widget_roi3DBalls->setChecked(config.ballPackingAnalysis.useCrop);
     ui->widget_bundleroi->setROIs(config.ballPackingAnalysis.analysisROIs);
+    ui->widget_bundleroi->updateViewer();
     ui->widget_roi3DBalls->setROI(config.ballPackingAnalysis.roi);
     ui->checkBox_reportBallPacking->setChecked(config.ballPackingAnalysis.makeReport);
 }
