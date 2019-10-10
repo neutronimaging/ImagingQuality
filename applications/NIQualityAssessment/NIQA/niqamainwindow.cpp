@@ -18,7 +18,10 @@
 #include <QTableWidgetItem>
 #include <QDesktopServices>
 #include <QMessageBox>
-
+#include <QBoxSet>
+#include <QBoxPlotSeries>
+#include <QFileDialog>
+#include <QDir>
 #include <tnt.h>
 
 #include <base/index2coord.h>
@@ -96,6 +99,7 @@ NIQAMainWindow::NIQAMainWindow(QWidget *parent) :
 
     ui->widget_insetrois->setViewer(ui->viewer_contrast);
     ui->widget_bundleroi->setViewer(ui->viewer_Packing);
+    ui->widget_bundleroi->setLabelVisible(true);
     ui->widget_reportName->setFileOperation(false);
     loadCurrent();
     updateDialog();
@@ -243,7 +247,7 @@ void NIQAMainWindow::on_combo_contrastplots_currentIndexChanged(int index)
 void NIQAMainWindow::showContrastBoxPlot()
 {
     std::ostringstream msg;
-    QChart *chart = new QChart(); // Life time
+//    QChart *chart = new QChart(); // Life time
     std::vector<kipl::math::Statistics> stats=m_ContrastSampleAnalyzer.getStatistics();
 
     std::vector<QString> insetLbl;
@@ -282,13 +286,9 @@ void NIQAMainWindow::showContrastBoxPlot()
         set->setValue(QBoxSet::Median,(stats[i].E())*slope+intercept);
         insetSeries->append(set);
     }
-    chart->addSeries(insetSeries);
-
-    chart->legend()->hide();
-    chart->createDefaultAxes();
-    chart->axes(Qt::Horizontal)[0]->setTitleText("Elements");
-
-    ui->chart_contrast->setChart(chart);
+    ui->chart_contrast->setDataSeries(0,insetSeries);
+    ui->chart_contrast->setTitle("Elements");
+    ui->chart_contrast->hideLegend();
 }
 
 void NIQAMainWindow::showContrastHistogram()
@@ -517,29 +517,39 @@ void NIQAMainWindow::on_button_AnalyzePacking_clicked()
         return;
     }
 
-    std::list<kipl::math::Statistics> roiStats=m_BallAssemblyAnalyzer.getStatistics();
+    auto roiStats=m_BallAssemblyAnalyzer.getStatistics();
     plotPackingStatistics(roiStats);
 }
 
-void NIQAMainWindow::plotPackingStatistics(std::list<kipl::math::Statistics> &roiStats)
+void NIQAMainWindow::plotPackingStatistics(std::map<float,kipl::math::Statistics> &roiStats)
 {
     std::vector<float> points;
 
-    foreach(auto stats, roiStats) {
-        points.push_back(stats.s());
-    }
-
-    std::sort(points.begin(),points.end());
-
     QLineSeries *series0 = new QLineSeries(); //Life time
-    float pos=0;
-    foreach (auto point, points) {
-        series0->append(QPointF(++pos,point));
+    if (false)
+    {
+        foreach(auto stats, roiStats) {
+            points.push_back(stats.second.s());
+        }
+
+        std::sort(points.begin(),points.end());
+
+        float pos=0;
+        foreach (auto point, points) {
+            series0->append(QPointF(++pos,point));
+        }
+    }
+    else {
+        for (auto & points : roiStats)
+        {
+            series0->append(QPointF(points.first,points.second.s()));
+        }
     }
 
     ui->chart_packing->setCurveData(0,series0);
     ui->chart_packing->setXLabel("Ball diameter [mm]");
     ui->chart_packing->setYLabel("StdDev");
+    ui->chart_packing->hideLegend();
 }
 
 
@@ -1359,7 +1369,7 @@ void NIQAMainWindow::on_pushButton_createReport_clicked()
     saveCurrent();
     ReportMaker report;
 
-    report.addContrastInfo(ui->chart_contrast,m_ContrastSampleAnalyzer.getStatistics());
+    //report.addContrastInfo(ui->chart_contrast,m_ContrastSampleAnalyzer.getStatistics());
     std::map<double,double> edges;
 
     for (int i=0; i<ui->listWidget_edgeInfo->count(); ++i) {

@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 
+#include <map>
 #include <tnt.h>
 #include <base/timage.h>
 #include <logging/logger.h>
@@ -25,7 +26,7 @@ class NIQAMainWindow : public QMainWindow
     Q_OBJECT
     kipl::logging::Logger logger;
 public:
-    explicit NIQAMainWindow(QWidget *parent = 0);
+    explicit NIQAMainWindow(QWidget *parent = nullptr);
     ~NIQAMainWindow();
 
 private slots:
@@ -121,7 +122,7 @@ private:
     void fitEdgeProfile(std::vector<float> &dataX, std::vector<float> &dataY, std::vector<float> &dataSig, Nonlinear::FitFunctionBase &fitFunction);
     void fitEdgeProfile(TNT::Array1D<double> &dataX, TNT::Array1D<double> &dataY, TNT::Array1D<double> &dataSig, Nonlinear::FitFunctionBase &fitFunction);
     void plotEdgeProfiles();
-    void plotPackingStatistics(std::list<kipl::math::Statistics> &roiStats);
+    void plotPackingStatistics(std::map<float, kipl::math::Statistics> &roiStats);
     void plot3DEdgeProfiles(int index);
     void saveCurrent();
     void loadCurrent();
