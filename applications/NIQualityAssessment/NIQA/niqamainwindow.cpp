@@ -18,7 +18,10 @@
 #include <QTableWidgetItem>
 #include <QDesktopServices>
 #include <QMessageBox>
-
+#include <QBoxSet>
+#include <QBoxPlotSeries>
+#include <QFileDialog>
+#include <QDir>
 #include <tnt.h>
 
 #include <base/index2coord.h>
@@ -244,7 +247,7 @@ void NIQAMainWindow::on_combo_contrastplots_currentIndexChanged(int index)
 void NIQAMainWindow::showContrastBoxPlot()
 {
     std::ostringstream msg;
-    QChart *chart = new QChart(); // Life time
+//    QChart *chart = new QChart(); // Life time
     std::vector<kipl::math::Statistics> stats=m_ContrastSampleAnalyzer.getStatistics();
 
     std::vector<QString> insetLbl;
@@ -283,13 +286,9 @@ void NIQAMainWindow::showContrastBoxPlot()
         set->setValue(QBoxSet::Median,(stats[i].E())*slope+intercept);
         insetSeries->append(set);
     }
-    chart->addSeries(insetSeries);
-
-    chart->legend()->hide();
-    chart->createDefaultAxes();
-    chart->axes(Qt::Horizontal)[0]->setTitleText("Elements");
-
-    ui->chart_contrast->setChart(chart);
+    ui->chart_contrast->setDataSeries(0,insetSeries);
+    ui->chart_contrast->setTitle("Elements");
+    ui->chart_contrast->hideLegend();
 }
 
 void NIQAMainWindow::showContrastHistogram()
@@ -1370,7 +1369,7 @@ void NIQAMainWindow::on_pushButton_createReport_clicked()
     saveCurrent();
     ReportMaker report;
 
-    report.addContrastInfo(ui->chart_contrast,m_ContrastSampleAnalyzer.getStatistics());
+    //report.addContrastInfo(ui->chart_contrast,m_ContrastSampleAnalyzer.getStatistics());
     std::map<double,double> edges;
 
     for (int i=0; i<ui->listWidget_edgeInfo->count(); ++i) {

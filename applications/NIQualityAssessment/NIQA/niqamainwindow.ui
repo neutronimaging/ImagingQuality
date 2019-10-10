@@ -306,7 +306,7 @@
         <item>
          <layout class="QVBoxLayout" name="verticalLayout_10">
           <item>
-           <widget class="QChartView" name="chart_contrast" native="true">
+           <widget class="QtAddons::PlotWidget" name="chart_contrast" native="true">
             <property name="minimumSize">
              <size>
               <width>350</width>
@@ -1450,6 +1450,15 @@
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
   <customwidget>
+   <class>QtAddons::uxROIWidget</class>
+   <extends>QWidget</extends>
+   <header>uxroiwidget.h</header>
+   <container>1</container>
+   <slots>
+    <signal>valueChanged(int,int,int,int)</signal>
+   </slots>
+  </customwidget>
+  <customwidget>
    <class>QtAddons::ImageViewerWidget</class>
    <extends>QWidget</extends>
    <header location="global">imageviewerwidget.h</header>
@@ -1457,12 +1466,6 @@
    <slots>
     <signal>levelsChanged(float,float)</signal>
    </slots>
-  </customwidget>
-  <customwidget>
-   <class>QChartView</class>
-   <extends>QWidget</extends>
-   <header location="global">QtCharts</header>
-   <container>1</container>
   </customwidget>
   <customwidget>
    <class>ReaderForm</class>
@@ -1475,15 +1478,6 @@
    <extends>QWidget</extends>
    <header location="global">roimanager.h</header>
    <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>QtAddons::uxROIWidget</class>
-   <extends>QWidget</extends>
-   <header location="global">uxroiwidget.h</header>
-   <container>1</container>
-   <slots>
-    <signal>valueChanged(int,int,int,int)</signal>
-   </slots>
   </customwidget>
   <customwidget>
    <class>SingleFileForm</class>
