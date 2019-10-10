@@ -96,6 +96,7 @@ NIQAMainWindow::NIQAMainWindow(QWidget *parent) :
 
     ui->widget_insetrois->setViewer(ui->viewer_contrast);
     ui->widget_bundleroi->setViewer(ui->viewer_Packing);
+    ui->widget_bundleroi->setLabelVisible(true);
     ui->widget_reportName->setFileOperation(false);
     loadCurrent();
     updateDialog();
@@ -517,29 +518,39 @@ void NIQAMainWindow::on_button_AnalyzePacking_clicked()
         return;
     }
 
-    std::list<kipl::math::Statistics> roiStats=m_BallAssemblyAnalyzer.getStatistics();
+    auto roiStats=m_BallAssemblyAnalyzer.getStatistics();
     plotPackingStatistics(roiStats);
 }
 
-void NIQAMainWindow::plotPackingStatistics(std::list<kipl::math::Statistics> &roiStats)
+void NIQAMainWindow::plotPackingStatistics(std::map<float,kipl::math::Statistics> &roiStats)
 {
     std::vector<float> points;
 
-    foreach(auto stats, roiStats) {
-        points.push_back(stats.s());
-    }
-
-    std::sort(points.begin(),points.end());
-
     QLineSeries *series0 = new QLineSeries(); //Life time
-    float pos=0;
-    foreach (auto point, points) {
-        series0->append(QPointF(++pos,point));
+    if (false)
+    {
+        foreach(auto stats, roiStats) {
+            points.push_back(stats.second.s());
+        }
+
+        std::sort(points.begin(),points.end());
+
+        float pos=0;
+        foreach (auto point, points) {
+            series0->append(QPointF(++pos,point));
+        }
+    }
+    else {
+        for (auto & points : roiStats)
+        {
+            series0->append(QPointF(points.first,points.second.s()));
+        }
     }
 
     ui->chart_packing->setCurveData(0,series0);
     ui->chart_packing->setXLabel("Ball diameter [mm]");
     ui->chart_packing->setYLabel("StdDev");
+    ui->chart_packing->hideLegend();
 }
 
 
