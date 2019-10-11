@@ -18,7 +18,7 @@
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="tab_ContrastAnalysis">
        <attribute name="title">
@@ -598,6 +598,11 @@
                 <item>
                  <property name="text">
                   <string>Edge derivative plot</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>MTF</string>
                  </property>
                 </item>
                </widget>

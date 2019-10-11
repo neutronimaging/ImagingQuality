@@ -1006,6 +1006,7 @@ void NIQAMainWindow::getEdge2Dprofiles()
                 it->second=-it->second;
         }
 
+
         m_Edges2D[item->distance]=pvec;
         std::string fname="edge.csv";
         kipl::io::serializeMap(pvec,fname);
@@ -1079,10 +1080,7 @@ void NIQAMainWindow::fitEdgeProfiles()
                 logger.warning("Could not find FWHM, using constant =10");
                 item->fitModel[2]=10.0;
             }
-//            qDebug() << "Fitter initialized"
-//                     << "ampl "<<item->fitModel[0]
-//                     << "pos "<<item->fitModel[1]
-//                     << "width "<<item->fitModel[2];
+
             mrqfit.fit(x,y,sig,item->fitModel);
             qDebug() << "Fitter done"
                      << "ampl "<<item->fitModel[0]
@@ -1194,7 +1192,9 @@ void NIQAMainWindow::plotEdgeProfiles()
 
     ui->chart_2Dedges->clearAllCurves();
     int idx=0;
-    if (ui->comboBox_edgePlotType->currentIndex()==0)
+    switch (ui->comboBox_edgePlotType->currentIndex())
+    {
+    case 0:
     {
         for (auto it = m_Edges2D.begin(); it!=m_Edges2D.end(); ++it,++idx)
         {
@@ -1212,10 +1212,10 @@ void NIQAMainWindow::plotEdgeProfiles()
             }
             ui->chart_2Dedges->setCurveData(idx,series);
         }
+        break;
     }
-    else
+    case 1:
     {
-
         for (auto it = m_DEdges2D.begin(); it!=m_DEdges2D.end(); ++it,++idx)
         {
             QLineSeries *series = new QLineSeries(); //Life time
@@ -1234,6 +1234,12 @@ void NIQAMainWindow::plotEdgeProfiles()
 
             ui->chart_2Dedges->setCurveData(idx,series);
         }
+    }
+        break;
+    case 2:
+    {
+
+    }
     }
 }
 
