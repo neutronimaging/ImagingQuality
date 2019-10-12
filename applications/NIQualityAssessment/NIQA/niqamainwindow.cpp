@@ -251,6 +251,13 @@ void NIQAMainWindow::showContrastBoxPlot()
     std::vector<kipl::math::Statistics> stats=m_ContrastSampleAnalyzer.getStatistics();
 
     std::vector<QString> insetLbl;
+    if (stats.empty())
+    {
+        logger.warning("ShowContrastBoxPlot: empty statistics list");
+        return;
+    }
+
+
     if (stats[1].E()/stats[0].E()<0.5)
         insetLbl = {"Ni","Al","Cu","Pb","Ti","Fe"};
     else
@@ -281,8 +288,8 @@ void NIQAMainWindow::showContrastBoxPlot()
         }
         set->setValue(QBoxSet::LowerExtreme,(stats[i].Min())*slope+intercept);
         set->setValue(QBoxSet::UpperExtreme,(stats[i].Max())*slope+intercept);
-        set->setValue(QBoxSet::LowerQuartile,(stats[i].E()-stats[i].s()*1.96f)*slope+intercept);
-        set->setValue(QBoxSet::UpperQuartile,(stats[i].E()+stats[i].s()*1.96f)*slope+intercept);
+        set->setValue(QBoxSet::LowerQuartile,(stats[i].E()-stats[i].s()*1.96)*slope+intercept);
+        set->setValue(QBoxSet::UpperQuartile,(stats[i].E()+stats[i].s()*1.96)*slope+intercept);
         set->setValue(QBoxSet::Median,(stats[i].E())*slope+intercept);
         insetSeries->append(set);
     }
@@ -351,7 +358,7 @@ void NIQAMainWindow::on_button_AnalyzeContrast_clicked()
     kipl::profile::MicroTimer timer;
     try
     {
-        timer.Tic();
+        timer.Tic();m_ContrastSampleAnalyzer.saveIntermediateImages = true;
         m_ContrastSampleAnalyzer.analyzeContrast(ui->spin_contrast_pixelsize->value(),roiList);
         timer.Toc();
     }
@@ -1022,93 +1029,93 @@ void NIQAMainWindow::estimateResolutions()
 
 void NIQAMainWindow::fitEdgeProfiles()
 {
-    std::ostringstream msg;
-    int item_idx=0;
+//    std::ostringstream msg;
+//    int item_idx=0;
 
-    const double FWHMconst=2*sqrt(log(2));
-    ui->listWidget_edgeInfo->clear();
-    for (auto it = m_DEdges2D.begin(); it!=m_DEdges2D.end(); ++it,++item_idx) {
+//    const double FWHMconst=2*sqrt(log(2));
+//    ui->listWidget_edgeInfo->clear();
+//    for (auto it = m_DEdges2D.begin(); it!=m_DEdges2D.end(); ++it,++item_idx) {
 
-        auto edge=it->second;
-        int Nedge=static_cast<int>(edge.size());
-        Array1D<double> x(Nedge);
-        Array1D<double> y(Nedge);
-        Array1D<double> sig(Nedge);
-     //   qDebug() << "fit idx="<<item_idx<<" len="<<Nedge;
-        int i=0;
+//        auto edge=it->second;
+//        int Nedge=static_cast<int>(edge.size());
+//        Array1D<double> x(Nedge);
+//        Array1D<double> y(Nedge);
+//        Array1D<double> sig(Nedge);
+//     //   qDebug() << "fit idx="<<item_idx<<" len="<<Nedge;
+//        int i=0;
 
-        for (auto dit=edge.begin(); dit!=edge.end(); ++dit, ++i)
-        {
-            sig[i]=1.0;
-            x[i]=static_cast<double>(dit->first);
-            y[i]=static_cast<double>(dit->second);
-        }
+//        for (auto dit=edge.begin(); dit!=edge.end(); ++dit, ++i)
+//        {
+//            sig[i]=1.0;
+//            x[i]=static_cast<double>(dit->first);
+//            y[i]=static_cast<double>(dit->second);
+//        }
 
 
         EdgeInfoListItem *item = new EdgeInfoListItem;
 
-        Nonlinear::LevenbergMarquardt mrqfit(0.001,5000);
-        try {
-            double maxval=-std::numeric_limits<double>::max();
-            double minval=std::numeric_limits<double>::max();
-            int maxpos=0;
-            int minpos=0;
-            int idx=0;
-            for (auto eitem : edge) {
-                if (maxval<eitem.second) {
-                    maxval=eitem.second;
-                    maxpos=idx;
-                }
-                if (eitem.second< minval) {
-                    minval=eitem.second;
-                    minpos=idx;
-                }
-                idx++;
-            }
+//        Nonlinear::LevenbergMarquardt mrqfit(0.001,5000);
+//        try {
+//            double maxval=-std::numeric_limits<double>::max();
+//            double minval=std::numeric_limits<double>::max();
+//            int maxpos=0;
+//            int minpos=0;
+//            int idx=0;
+//            for (auto eitem : edge) {
+//                if (maxval<eitem.second) {
+//                    maxval=eitem.second;
+//                    maxpos=idx;
+//                }
+//                if (eitem.second< minval) {
+//                    minval=eitem.second;
+//                    minpos=idx;
+//                }
+//                idx++;
+//            }
 
-            double halfmax=(maxval-minval)/2+minval;
-            int HWHM=maxpos;
+//            double halfmax=(maxval-minval)/2+minval;
+//            int HWHM=maxpos;
 
-            for (; HWHM<y.dim1(); ++HWHM) {
-                if (y[HWHM]<halfmax)
-                    break;
-            }
-            item->fitModel[0]=maxval;
-            item->fitModel[1]=maxpos;
-            item->fitModel[2]=(HWHM-maxpos)*2;
-            if (item->fitModel[2]<2) {
-                logger.warning("Could not find FWHM, using constant =10");
-                item->fitModel[2]=10.0;
-            }
+//            for (; HWHM<y.dim1(); ++HWHM) {
+//                if (y[HWHM]<halfmax)
+//                    break;
+//            }
+//            item->fitModel[0]=maxval;
+//            item->fitModel[1]=maxpos;
+//            item->fitModel[2]=(HWHM-maxpos)*2;
+//            if (item->fitModel[2]<2) {
+//                logger.warning("Could not find FWHM, using constant =10");
+//                item->fitModel[2]=10.0;
+//            }
 
-            mrqfit.fit(x,y,sig,item->fitModel);
-            qDebug() << "Fitter done"
-                     << "ampl "<<item->fitModel[0]
-                     << "pos "<<item->fitModel[1]
-                     << "width "<<item->fitModel[2];
-        }
-        catch (kipl::base::KiplException &e) {
-            logger.error(e.what());
-            return ;
-        }
-        catch (std::exception &e) {
-            logger.message(msg.str());
-            return ;
-        }
+//            mrqfit.fit(x,y,sig,item->fitModel);
+//            qDebug() << "Fitter done"
+//                     << "ampl "<<item->fitModel[0]
+//                     << "pos "<<item->fitModel[1]
+//                     << "width "<<item->fitModel[2];
+//        }
+//        catch (kipl::base::KiplException &e) {
+//            logger.error(e.what());
+//            return ;
+//        }
+//        catch (std::exception &e) {
+//            logger.message(msg.str());
+//            return ;
+//        }
 
-        msg.str("");
-        msg<<item->fitModel[0]<<", "<<item->fitModel[1]<<", "<<item->fitModel[2];
-        logger.message(msg.str());
+//        msg.str("");
+//        msg<<item->fitModel[0]<<", "<<item->fitModel[1]<<", "<<item->fitModel[2];
+//        logger.message(msg.str());
 
-        item->distance=it->first;
-        item->FWHMpixels=FWHMconst*item->fitModel[2];
-        item->FWHMmetric=FWHMconst*config.edgeAnalysis2D.pixelSize*(item->fitModel[2]);
-        msg.str(""); msg<<"distance="<<(it->first)<<"mm, FWHM="<<item->FWHMmetric<<"mm ("<<item->FWHMpixels<<" pixels)";
-        item->setData(Qt::DisplayRole,QString::fromStdString(msg.str()));
+//        item->distance=it->first;
+//        item->FWHMpixels=FWHMconst*item->fitModel[2];
+//        item->FWHMmetric=FWHMconst*config.edgeAnalysis2D.pixelSize*(item->fitModel[2]);
+//        msg.str(""); msg<<"distance="<<(it->first)<<"mm, FWHM="<<item->FWHMmetric<<"mm ("<<item->FWHMpixels<<" pixels)";
+//        item->setData(Qt::DisplayRole,QString::fromStdString(msg.str()));
 
-        ui->listWidget_edgeInfo->addItem(item);
-    }
-    qDebug() << " list count"<< ui->listWidget_edgeInfo->count();
+//        ui->listWidget_edgeInfo->addItem(item);
+//    }
+//    qDebug() << " list count"<< ui->listWidget_edgeInfo->count();
 
 }
 
