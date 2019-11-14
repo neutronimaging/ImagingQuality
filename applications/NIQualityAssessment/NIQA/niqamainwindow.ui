@@ -18,7 +18,7 @@
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="tab_ContrastAnalysis">
        <attribute name="title">
@@ -419,13 +419,6 @@
               </property>
              </widget>
             </item>
-            <item>
-             <widget class="QPushButton" name="button_estimateCollimation">
-              <property name="text">
-               <string>Estimate collimation</string>
-              </property>
-             </widget>
-            </item>
            </layout>
           </item>
           <item>
@@ -518,7 +511,7 @@
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>578</width>
+               <width>539</width>
                <height>123</height>
               </rect>
              </property>
@@ -558,7 +551,7 @@
            </size>
           </property>
           <property name="currentIndex">
-           <number>1</number>
+           <number>0</number>
           </property>
           <widget class="QWidget" name="tab_preview">
            <attribute name="title">
@@ -648,7 +641,7 @@
               <property name="minimumSize">
                <size>
                 <width>0</width>
-                <height>300</height>
+                <height>400</height>
                </size>
               </property>
              </widget>
@@ -661,7 +654,7 @@
              </widget>
             </item>
             <item>
-             <spacer name="verticalSpacer_9">
+             <spacer name="verticalSpacer_6">
               <property name="orientation">
                <enum>Qt::Vertical</enum>
               </property>

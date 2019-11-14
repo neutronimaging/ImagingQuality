@@ -64,8 +64,6 @@ private slots:
 
     void on_button_get2Dedges_clicked();
 
-    void on_button_estimateCollimation_clicked();
-
     void on_pushButton_contrast_pixelSize_clicked();
 
     void on_pushButton_2dEdge_pixelSize_clicked();
@@ -121,6 +119,7 @@ private:
     void fitEdgeProfiles();
     void fitEdgeProfile(std::vector<float> &dataX, std::vector<float> &dataY, std::vector<float> &dataSig, Nonlinear::FitFunctionBase &fitFunction);
     void fitEdgeProfile(TNT::Array1D<double> &dataX, TNT::Array1D<double> &dataY, TNT::Array1D<double> &dataSig, Nonlinear::FitFunctionBase &fitFunction);
+    void estimateCollimation();
     void plotEdgeProfiles();
     void plotPackingStatistics(std::map<float, kipl::math::Statistics> &roiStats);
     void plot3DEdgeProfiles(int index);
