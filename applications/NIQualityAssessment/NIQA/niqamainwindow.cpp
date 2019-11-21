@@ -357,7 +357,8 @@ void NIQAMainWindow::on_button_AnalyzeContrast_clicked()
     kipl::profile::MicroTimer timer;
     try
     {
-        timer.Tic();m_ContrastSampleAnalyzer.saveIntermediateImages = true;
+        timer.Tic();
+        m_ContrastSampleAnalyzer.saveIntermediateImages = true;
         m_ContrastSampleAnalyzer.analyzeContrast(ui->spin_contrast_pixelsize->value(),roiList);
         timer.Toc();
     }
