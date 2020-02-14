@@ -99,6 +99,7 @@ NIQAMainWindow::NIQAMainWindow(QWidget *parent) :
     ui->widget_insetrois->setViewer(ui->viewer_contrast);
     ui->widget_bundleroi->setViewer(ui->viewer_Packing);
     ui->widget_bundleroi->setLabelVisible(true);
+    ui->widget_bundleroi->setRequireLabel(true);
     ui->widget_reportName->setFileOperation(false);
     loadCurrent();
     updateDialog();
