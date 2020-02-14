@@ -7,6 +7,8 @@
 #include <strings/string2array.h>
 #include <base/KiplException.h>
 
+#include <QDebug>
+
 NIQAConfig::NIQAConfig() :
     logger("NIQAConfig")
 {
@@ -253,25 +255,30 @@ void NIQAConfig::ParseContrastAnalysis(xmlTextReaderPtr reader)
             }
 
             if (sName=="roilist") {
-                std::list<std::string> strlist;
-                kipl::strings::String2List(sValue,strlist);
+                std::vector<std::string> strlist;
+                kipl::strings::String2Array(sValue,strlist);
                 std::ostringstream msg;
                 contrastAnalysis.analysisROIs.clear();
 
                 msg<<"strlist.size: "<<strlist.size()<<", sValue: "<<sValue;
                 logger.message(msg.str());
-                if ((strlist.size() % 4 != 0) || (strlist.empty()==true)){
+                if ((strlist.size() % 5 != 0) || (strlist.empty()==true)){
                     logger.error("Incomplete roi list");
                     throw kipl::base::KiplException("Incomplete ROI list",__FILE__,__LINE__);
                 }
 
-                for (auto it=strlist.begin(); it!=strlist.end(); ++it) {
+               // for (auto it=strlist.begin(); it!=strlist.end(); ++it) {
+                for (size_t i=0; i<strlist.size(); i+=5)
+                {
                     size_t temproi[4];
-                    temproi[0] = std::stoi(*it); ++it;
-                    temproi[1] = std::stoi(*it); ++it;
-                    temproi[2] = std::stoi(*it); ++it;
-                    temproi[3] = std::stoi(*it);
-                    kipl::base::RectROI roi(temproi);
+                    std::string lbl = strlist[i];
+                    qDebug() << lbl.c_str();
+
+                    temproi[0] = std::stoi(strlist[i+1]);
+                    temproi[1] = std::stoi(strlist[i+2]);
+                    temproi[2] = std::stoi(strlist[i+3]);
+                    temproi[3] = std::stoi(strlist[i+4]);
+                    kipl::base::RectROI roi(temproi,lbl);
                     contrastAnalysis.analysisROIs.push_back(roi);
                 }
 
@@ -506,25 +513,29 @@ void NIQAConfig::parseBallPackingAnalysis(xmlTextReaderPtr reader)
             }
 
             if (sName=="roilist") {
-                std::list<std::string> strlist;
-                kipl::strings::String2List(sValue,strlist);
+                std::vector<std::string> strlist;
+                kipl::strings::String2Array(sValue,strlist);
                 std::ostringstream msg;
                 ballPackingAnalysis.analysisROIs.clear();
 
                 msg<<"strlist.size: "<<strlist.size()<<", sValue: "<<sValue;
                 logger.message(msg.str());
-                if ((strlist.size() % 4 != 0) || (strlist.empty()==true)){
+                if ((strlist.size() % 5 != 0) || (strlist.empty()==true)){
                     logger.error("Incomplete roi list");
                     throw kipl::base::KiplException("Incomplete ROI list",__FILE__,__LINE__);
                 }
 
-                for (auto it=strlist.begin(); it!=strlist.end(); ++it) {
+                for (size_t i=0; i<strlist.size(); i+=5)
+                {
                     size_t temproi[4];
-                    temproi[0] = std::stoi(*it); ++it;
-                    temproi[1] = std::stoi(*it); ++it;
-                    temproi[2] = std::stoi(*it); ++it;
-                    temproi[3] = std::stoi(*it);
-                    kipl::base::RectROI roi(temproi);
+                    std::string lbl = strlist[i];
+                    qDebug() << lbl.c_str();
+
+                    temproi[0] = std::stoi(strlist[i+1]);
+                    temproi[1] = std::stoi(strlist[i+2]);
+                    temproi[2] = std::stoi(strlist[i+3]);
+                    temproi[3] = std::stoi(strlist[i+4]);
+                    kipl::base::RectROI roi(temproi,lbl);
                     ballPackingAnalysis.analysisROIs.push_back(roi);
                 }
 

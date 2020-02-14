@@ -102,6 +102,7 @@ NIQAMainWindow::NIQAMainWindow(QWidget *parent) :
     ui->widget_reportName->setFileOperation(false);
     loadCurrent();
     updateDialog();
+
 }
 
 NIQAMainWindow::~NIQAMainWindow()
@@ -500,6 +501,7 @@ void NIQAMainWindow::on_button_LoadPacking_clicked()
      ui->slider_PackingImages->setValue(m_BallAssembly.Size(2)/2);
      on_slider_PackingImages_sliderMoved(m_BallAssembly.Size(2)/2);
      m_BallAssemblyProjection=kipl::math::BasicProjector<float>::project(m_BallAssembly,kipl::base::ImagePlaneXY);
+     ui->widget_bundleroi->updateViewer();
 }
 
 void NIQAMainWindow::on_button_AnalyzePacking_clicked()
@@ -525,6 +527,8 @@ void NIQAMainWindow::on_button_AnalyzePacking_clicked()
     }
 
     auto roiStats=m_BallAssemblyAnalyzer.getStatistics();
+    qDebug() << "ROI stats size" <<roiStats.size();
+
     plotPackingStatistics(roiStats);
 }
 
@@ -553,6 +557,7 @@ void NIQAMainWindow::plotPackingStatistics(std::map<float,kipl::math::Statistics
         }
     }
 
+    qDebug() << "Packing plot size"<<series0->count();
     ui->chart_packing->setCurveData(0,series0);
     ui->chart_packing->setXLabel("Ball diameter [mm]");
     ui->chart_packing->setYLabel("StdDev");
@@ -827,8 +832,8 @@ void NIQAMainWindow::updateDialog()
     ui->imageloader_packing->setReaderConfig(loader);
     ui->widget_roi3DBalls->setChecked(config.ballPackingAnalysis.useCrop);
     ui->widget_bundleroi->setROIs(config.ballPackingAnalysis.analysisROIs);
-    ui->widget_bundleroi->updateViewer();
     ui->widget_roi3DBalls->setROI(config.ballPackingAnalysis.roi);
+    ui->widget_bundleroi->updateViewer();
     ui->checkBox_reportBallPacking->setChecked(config.ballPackingAnalysis.makeReport);
 }
 
