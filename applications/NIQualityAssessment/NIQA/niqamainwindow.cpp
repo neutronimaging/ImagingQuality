@@ -190,6 +190,7 @@ void NIQAMainWindow::on_button_contrast_load_clicked()
 
     msg<<loader.m_sFilemask<<loader.m_nFirst<<", "<<loader.m_nLast;
     logger(logger.LogMessage,msg.str());
+    qDebug() << msg.str().c_str();
     try
     {
         m_Contrast=reader.Read(loader,kipl::base::ImageFlipNone,kipl::base::ImageRotateNone,1.0f,nullptr);
@@ -204,15 +205,22 @@ void NIQAMainWindow::on_button_contrast_load_clicked()
         QMessageBox::warning(this,"Load images failed",e.what());
         return ;
     }
+    qDebug() << "Image loaded"<< m_Contrast.Size(0) << m_Contrast.Size(1)<< m_Contrast.Size(2);
     ui->slider_contrast_images->setMinimum(0);
     ui->slider_contrast_images->setMaximum(m_Contrast.Size(2)-1);
     ui->slider_contrast_images->setValue((m_Contrast.Size(2)-1)/2);
 
     ui->slider_contrast_images->setMinimum(0);
     ui->spin_contrast_images->setMaximum(m_Contrast.Size(2)-1);
+
+    qDebug() << "pre update";
     on_slider_contrast_images_sliderMoved(m_Contrast.Size(2)/2);
 
+
+    qDebug() << "pre analysis";
     m_ContrastSampleAnalyzer.setImage(m_Contrast);
+
+    qDebug() << "analysis done";
     showContrastHistogram();
     ui->widget_insetrois->updateViewer();
 
@@ -237,13 +245,13 @@ void NIQAMainWindow::on_spin_contrast_images_valueChanged(int arg1)
     on_slider_contrast_images_sliderMoved(arg1);
 }
 
-void NIQAMainWindow::on_combo_contrastplots_currentIndexChanged(int index)
-{
-    switch (index) {
-        case 0: showContrastHistogram(); break;
-        case 1: showContrastBoxPlot(); break;
-    }
-}
+//void NIQAMainWindow::on_combo_contrastplots_currentIndexChanged(int index)
+//{
+//    switch (index) {
+//        case 0: showContrastHistogram(); break;
+//        case 1: showContrastBoxPlot(); break;
+//    }
+//}
 
 void NIQAMainWindow::showContrastBoxPlot()
 {

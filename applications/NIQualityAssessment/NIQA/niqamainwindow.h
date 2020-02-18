@@ -42,7 +42,7 @@ private slots:
 
     void on_spin_contrast_images_valueChanged(int arg1);
 
-    void on_combo_contrastplots_currentIndexChanged(int index);
+ //   void on_combo_contrastplots_currentIndexChanged(int index);
 
     void on_button_AnalyzeContrast_clicked();
 
