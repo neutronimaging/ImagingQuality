@@ -48,7 +48,7 @@ unix {
         INCLUDEPATH += /usr/include/libxml2
     }
 
-    LIBS += -ltiff -lxml2
+    LIBS += -ltiff -lxml2 -larmadillo -llapack
 
     INCLUDEPATH += $$PWD/../../../../imagingsuite/external/src/linalg
 }
@@ -60,7 +60,7 @@ win32 {
     INCLUDEPATH += $$PWD/../../../../imagingsuite/external/src/linalg $$PWD/../../../../imagingsuite/external/include $$PWD/../../../../imagingsuite/external/include/cfitsio $$PWD/../../../../imagingsuite/external/include/libxml2
     QMAKE_LIBDIR += $$_PRO_FILE_PWD_/../../../../imagingsuite/external/lib64
 
-    LIBS += -llibxml2_dll -llibtiff -lcfitsio
+    LIBS += -llibxml2_dll -llibtiff -lcfitsio -llibblas -lliblapack
     QMAKE_CXXFLAGS += /openmp /O2
 }
 

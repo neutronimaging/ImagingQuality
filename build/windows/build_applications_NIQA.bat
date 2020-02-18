@@ -13,3 +13,28 @@ cd %DEST%\build-NIQA
 %QTBINPATH%\..\..\..\Tools\QtCreator\bin\jom.exe -f Makefile clean
 %QTBINPATH%\..\..\..\Tools\QtCreator\bin\jom.exe -f Makefile mocables all
 %QTBINPATH%\..\..\..\Tools\QtCreator\bin\jom.exe -f Makefile release
+
+goto :eof
+echo "Build tests"
+
+cd %REPOSPATH%\applications\muhrec\UnitTests
+
+FOR /D %%I IN (*) DO @call :testloopbody %REPOSPATH% %%I %DEST%
+
+echo "Tests built"
+popd 
+
+goto :eof
+
+:testloopbody
+echo %2
+if exist "%1\applications\muhrec\UnitTests\%2\%2.pro" (
+	mkdir %3\%2
+	cd %3\%2
+
+	%QTBINPATH%\qmake.exe -makefile ..\..\imagingsuite\applications\muhrec\UnitTests\%2\%2.pro -o Makefile
+	%QTBINPATH%\..\..\..\Tools\QtCreator\bin\jom.exe -f Makefile clean
+	%QTBINPATH%\..\..\..\Tools\QtCreator\bin\jom.exe -f Makefile mocables all
+	%QTBINPATH%\..\..\..\Tools\QtCreator\bin\jom.exe -f Makefile release
+)
+goto :eof

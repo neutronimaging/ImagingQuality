@@ -18,7 +18,7 @@
     <item>
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="tab_ContrastAnalysis">
        <attribute name="title">
@@ -269,8 +269,8 @@
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>348</width>
-               <height>186</height>
+               <width>379</width>
+               <height>203</height>
               </rect>
              </property>
              <layout class="QHBoxLayout" name="horizontalLayout_20">
@@ -412,20 +412,6 @@
               </property>
              </spacer>
             </item>
-            <item>
-             <widget class="QPushButton" name="button_get2Dedges">
-              <property name="text">
-               <string>Analyze edges</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="button_estimateCollimation">
-              <property name="text">
-               <string>Estimate collimation</string>
-              </property>
-             </widget>
-            </item>
            </layout>
           </item>
           <item>
@@ -502,6 +488,13 @@
            </layout>
           </item>
           <item>
+           <widget class="QPushButton" name="button_get2Dedges">
+            <property name="text">
+             <string>Analyze edges</string>
+            </property>
+           </widget>
+          </item>
+          <item>
            <widget class="QLabel" name="label_20">
             <property name="text">
              <string>Instructions</string>
@@ -518,8 +511,8 @@
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>578</width>
-               <height>123</height>
+               <width>558</width>
+               <height>137</height>
               </rect>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_18">
@@ -558,7 +551,7 @@
            </size>
           </property>
           <property name="currentIndex">
-           <number>1</number>
+           <number>0</number>
           </property>
           <widget class="QWidget" name="tab_preview">
            <attribute name="title">
@@ -648,7 +641,7 @@
               <property name="minimumSize">
                <size>
                 <width>0</width>
-                <height>300</height>
+                <height>400</height>
                </size>
               </property>
              </widget>
@@ -661,7 +654,7 @@
              </widget>
             </item>
             <item>
-             <spacer name="verticalSpacer_9">
+             <spacer name="verticalSpacer_6">
               <property name="orientation">
                <enum>Qt::Vertical</enum>
               </property>
@@ -835,8 +828,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>350</width>
-                 <height>216</height>
+                 <width>378</width>
+                 <height>230</height>
                 </rect>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_22">
@@ -1138,8 +1131,8 @@
                    <rect>
                     <x>0</x>
                     <y>0</y>
-                    <width>350</width>
-                    <height>194</height>
+                    <width>383</width>
+                    <height>210</height>
                    </rect>
                   </property>
                   <layout class="QVBoxLayout" name="verticalLayout_23">
@@ -1371,7 +1364,7 @@
      <x>0</x>
      <y>0</y>
      <width>1172</width>
-     <height>22</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">

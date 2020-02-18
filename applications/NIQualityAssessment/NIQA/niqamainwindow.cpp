@@ -22,8 +22,7 @@
 #include <QBoxPlotSeries>
 #include <QFileDialog>
 #include <QDir>
-#include <tnt.h>
-
+#include <armadillo>
 #include <base/index2coord.h>
 
 #include <datasetbase.h>
@@ -100,9 +99,11 @@ NIQAMainWindow::NIQAMainWindow(QWidget *parent) :
     ui->widget_insetrois->setViewer(ui->viewer_contrast);
     ui->widget_bundleroi->setViewer(ui->viewer_Packing);
     ui->widget_bundleroi->setLabelVisible(true);
+    ui->widget_bundleroi->setRequireLabel(true);
     ui->widget_reportName->setFileOperation(false);
     loadCurrent();
     updateDialog();
+
 }
 
 NIQAMainWindow::~NIQAMainWindow()
@@ -189,6 +190,7 @@ void NIQAMainWindow::on_button_contrast_load_clicked()
 
     msg<<loader.m_sFilemask<<loader.m_nFirst<<", "<<loader.m_nLast;
     logger(logger.LogMessage,msg.str());
+    qDebug() << msg.str().c_str();
     try
     {
         m_Contrast=reader.Read(loader,kipl::base::ImageFlipNone,kipl::base::ImageRotateNone,1.0f,nullptr);
@@ -203,15 +205,22 @@ void NIQAMainWindow::on_button_contrast_load_clicked()
         QMessageBox::warning(this,"Load images failed",e.what());
         return ;
     }
+    qDebug() << "Image loaded"<< m_Contrast.Size(0) << m_Contrast.Size(1)<< m_Contrast.Size(2);
     ui->slider_contrast_images->setMinimum(0);
     ui->slider_contrast_images->setMaximum(m_Contrast.Size(2)-1);
     ui->slider_contrast_images->setValue((m_Contrast.Size(2)-1)/2);
 
     ui->slider_contrast_images->setMinimum(0);
     ui->spin_contrast_images->setMaximum(m_Contrast.Size(2)-1);
+
+    qDebug() << "pre update";
     on_slider_contrast_images_sliderMoved(m_Contrast.Size(2)/2);
 
+
+    qDebug() << "pre analysis";
     m_ContrastSampleAnalyzer.setImage(m_Contrast);
+
+    qDebug() << "analysis done";
     showContrastHistogram();
     ui->widget_insetrois->updateViewer();
 
@@ -236,13 +245,13 @@ void NIQAMainWindow::on_spin_contrast_images_valueChanged(int arg1)
     on_slider_contrast_images_sliderMoved(arg1);
 }
 
-void NIQAMainWindow::on_combo_contrastplots_currentIndexChanged(int index)
-{
-    switch (index) {
-        case 0: showContrastHistogram(); break;
-        case 1: showContrastBoxPlot(); break;
-    }
-}
+//void NIQAMainWindow::on_combo_contrastplots_currentIndexChanged(int index)
+//{
+//    switch (index) {
+//        case 0: showContrastHistogram(); break;
+//        case 1: showContrastBoxPlot(); break;
+//    }
+//}
 
 void NIQAMainWindow::showContrastBoxPlot()
 {
@@ -251,6 +260,13 @@ void NIQAMainWindow::showContrastBoxPlot()
     std::vector<kipl::math::Statistics> stats=m_ContrastSampleAnalyzer.getStatistics();
 
     std::vector<QString> insetLbl;
+    if (stats.empty())
+    {
+        logger.warning("ShowContrastBoxPlot: empty statistics list");
+        return;
+    }
+
+
     if (stats[1].E()/stats[0].E()<0.5)
         insetLbl = {"Ni","Al","Cu","Pb","Ti","Fe"};
     else
@@ -281,8 +297,8 @@ void NIQAMainWindow::showContrastBoxPlot()
         }
         set->setValue(QBoxSet::LowerExtreme,(stats[i].Min())*slope+intercept);
         set->setValue(QBoxSet::UpperExtreme,(stats[i].Max())*slope+intercept);
-        set->setValue(QBoxSet::LowerQuartile,(stats[i].E()-stats[i].s()*1.96f)*slope+intercept);
-        set->setValue(QBoxSet::UpperQuartile,(stats[i].E()+stats[i].s()*1.96f)*slope+intercept);
+        set->setValue(QBoxSet::LowerQuartile,(stats[i].E()-stats[i].s()*1.96)*slope+intercept);
+        set->setValue(QBoxSet::UpperQuartile,(stats[i].E()+stats[i].s()*1.96)*slope+intercept);
         set->setValue(QBoxSet::Median,(stats[i].E())*slope+intercept);
         insetSeries->append(set);
     }
@@ -494,6 +510,7 @@ void NIQAMainWindow::on_button_LoadPacking_clicked()
      ui->slider_PackingImages->setValue(m_BallAssembly.Size(2)/2);
      on_slider_PackingImages_sliderMoved(m_BallAssembly.Size(2)/2);
      m_BallAssemblyProjection=kipl::math::BasicProjector<float>::project(m_BallAssembly,kipl::base::ImagePlaneXY);
+     ui->widget_bundleroi->updateViewer();
 }
 
 void NIQAMainWindow::on_button_AnalyzePacking_clicked()
@@ -519,6 +536,8 @@ void NIQAMainWindow::on_button_AnalyzePacking_clicked()
     }
 
     auto roiStats=m_BallAssemblyAnalyzer.getStatistics();
+    qDebug() << "ROI stats size" <<roiStats.size();
+
     plotPackingStatistics(roiStats);
 }
 
@@ -547,6 +566,7 @@ void NIQAMainWindow::plotPackingStatistics(std::map<float,kipl::math::Statistics
         }
     }
 
+    qDebug() << "Packing plot size"<<series0->count();
     ui->chart_packing->setCurveData(0,series0);
     ui->chart_packing->setXLabel("Ball diameter [mm]");
     ui->chart_packing->setYLabel("StdDev");
@@ -821,8 +841,8 @@ void NIQAMainWindow::updateDialog()
     ui->imageloader_packing->setReaderConfig(loader);
     ui->widget_roi3DBalls->setChecked(config.ballPackingAnalysis.useCrop);
     ui->widget_bundleroi->setROIs(config.ballPackingAnalysis.analysisROIs);
-    ui->widget_bundleroi->updateViewer();
     ui->widget_roi3DBalls->setROI(config.ballPackingAnalysis.roi);
+    ui->widget_bundleroi->updateViewer();
     ui->checkBox_reportBallPacking->setChecked(config.ballPackingAnalysis.makeReport);
 }
 
@@ -915,60 +935,9 @@ void NIQAMainWindow::on_button_get2Dedges_clicked()
     getEdge2Dprofiles();
     plotEdgeProfiles();
     fitEdgeProfiles();
+    estimateCollimation();
+
     ui->tabWidget_edge2D->setCurrentIndex(1);
-}
-
-void NIQAMainWindow::on_button_estimateCollimation_clicked()
-{
-    int N=ui->listWidget_edgeInfo->count();
-    if (N < 3) {
-        QMessageBox::warning(this,"Too few data points","The collimation estimate needs three or more edges to work. Please add more edge images.", QMessageBox::Ok);
-        return ;
-    }
-
-    TNT::Array2D<double> y(N,1);
-    TNT::Array2D<double> H(N,2);
-    TNT::Array2D<double> C(N,N,0.0);
-    TNT::Array2D<double> param;
-
-    QLineSeries *series = new QLineSeries(); //Life time
-
-    const double eps=0;
-    for (int i=0; i<N; ++i) {
-        auto item = dynamic_cast<EdgeInfoListItem *>(ui->listWidget_edgeInfo->item(i));
-
-        double distance=item->distance;
-        double width=item->FWHMmetric;
-
-        y[i][0]=width*width  ;
-        H[i][0]=1.0 ;
-        H[i][1]=distance*distance;
-        C[i][i]=1.0/(distance+eps);
-
-        qDebug() <<"Distance: "<<distance<<", Width: "<<width;
-        series->append(QPointF(distance,width));
-    }
-
-    ui->chart_collimation->setCurveData(0,series,"Measured");
-    kipl::math::weightedLSFit(H,C,y,param);
-
-    double res = sqrt(param[0][0]);
-    double LD  = 1.0/sqrt(param[1][0]);
-    QString text;
-    QTextStream(&text) << "Intrinsic resolution:" << res << " L/D:" <<LD;
-    qDebug() << "param[0]:" << res << "param[1]:" <<LD;
-    ui->label_collimationFit->setText(text);
-
-    TNT::Array2D<double> fit=TNT::matmult(H,param);
-    QLineSeries *fit_series = new QLineSeries();
-    for (int i=0 ; i<N ; ++i) {
-        double distance = sqrt(H[i][1]);
-        double width    = sqrt(fit[i][0]);
-        fit_series->append(QPointF(distance,width));
-    }
-
-    ui->chart_collimation->setCurveData(1,fit_series,"Fitted");
-
 }
 
 void NIQAMainWindow::getEdge2Dprofiles()
@@ -987,24 +956,29 @@ void NIQAMainWindow::getEdge2Dprofiles()
 
     size_t *pCrop= ui->widget_roiEdge2D->isChecked() ? crop : nullptr;
     std::map<float,float> pvec;
-    for (int i=0; i<ui->listEdgeFiles->count(); ++i) {
+    for (int i=0; i<ui->listEdgeFiles->count(); ++i)
+    {
         item = dynamic_cast<EdgeFileListItem *>(ui->listEdgeFiles->item(i));
         logger.message(item->filename.toStdString());
         if (item->checkState()==Qt::CheckState::Unchecked)
             continue;
 
-        try {
+        try
+        {
             img=reader.Read(item->filename.toStdString(),kipl::base::ImageFlipNone,kipl::base::ImageRotateNone,1.0f,pCrop);
         }
-        catch (kipl::base::KiplException &e) {
-            qDebug() << QString::fromStdString(e.what());
+        catch (kipl::base::KiplException &e)
+        {
+            qDebug() << e.what();
+            logger.error("Failed to load image");
             return ;
         }
 
         pvec=pe.getProfile(img);
-        if (pvec.rbegin()->second<pvec.begin()->second) {
-            for (auto it=pvec.begin(); it!=pvec.end(); ++it)
-                it->second=-it->second;
+        if (pvec.rbegin()->second<pvec.begin()->second)
+        {
+            for (auto & pval : pvec)
+                pval.second = -pval.second;
         }
 
 
@@ -1028,25 +1002,26 @@ void NIQAMainWindow::fitEdgeProfiles()
 
     const double FWHMconst=2*sqrt(log(2));
     ui->listWidget_edgeInfo->clear();
-    for (auto it = m_DEdges2D.begin(); it!=m_DEdges2D.end(); ++it,++item_idx) {
+    for (auto & edgeItem :m_DEdges2D) {
+        ++item_idx;
+        auto edge=edgeItem.second;
 
-        auto edge=it->second;
-        int Nedge=static_cast<int>(edge.size());
-        Array1D<double> x(Nedge);
-        Array1D<double> y(Nedge);
-        Array1D<double> sig(Nedge);
-     //   qDebug() << "fit idx="<<item_idx<<" len="<<Nedge;
+        int nEdge=static_cast<int>(edge.size());
+        arma::vec x(nEdge);
+        arma::vec y(nEdge);
+        arma::vec sig(nEdge);
         int i=0;
 
-        for (auto dit=edge.begin(); dit!=edge.end(); ++dit, ++i)
+        for (auto edgeVal : edge)
         {
             sig[i]=1.0;
-            x[i]=static_cast<double>(dit->first);
-            y[i]=static_cast<double>(dit->second);
+            x[i]=static_cast<double>(edgeVal.first);
+            y[i]=static_cast<double>(edgeVal.second);
+            ++i;
         }
 
 
-        EdgeInfoListItem *item = new EdgeInfoListItem;
+        EdgeInfoListItem *edgeInfoItem = new EdgeInfoListItem;
 
         Nonlinear::LevenbergMarquardt mrqfit(0.001,5000);
         try {
@@ -1055,12 +1030,15 @@ void NIQAMainWindow::fitEdgeProfiles()
             int maxpos=0;
             int minpos=0;
             int idx=0;
-            for (auto eitem : edge) {
-                if (maxval<eitem.second) {
+            for (auto eitem : edge)
+            {
+                if (maxval<eitem.second)
+                {
                     maxval=eitem.second;
                     maxpos=idx;
                 }
-                if (eitem.second< minval) {
+                if (eitem.second< minval)
+                {
                     minval=eitem.second;
                     minpos=idx;
                 }
@@ -1070,23 +1048,28 @@ void NIQAMainWindow::fitEdgeProfiles()
             double halfmax=(maxval-minval)/2+minval;
             int HWHM=maxpos;
 
-            for (; HWHM<y.dim1(); ++HWHM) {
+            for (; HWHM<y.n_rows; ++HWHM)
+            {
                 if (y[HWHM]<halfmax)
                     break;
             }
-            item->fitModel[0]=maxval;
-            item->fitModel[1]=maxpos;
-            item->fitModel[2]=(HWHM-maxpos)*2;
-            if (item->fitModel[2]<2) {
+
+            auto & fitModel = edgeInfoItem->fitModel;
+
+            fitModel[0]=maxval;
+            fitModel[1]=maxpos;
+            fitModel[2]=(HWHM-maxpos)*2;
+
+            if (fitModel[2]<2) {
                 logger.warning("Could not find FWHM, using constant =10");
-                item->fitModel[2]=10.0;
+                fitModel[2]=10.0;
             }
 
-            mrqfit.fit(x,y,sig,item->fitModel);
+            mrqfit.fit(x,y,sig,fitModel);
             qDebug() << "Fitter done"
-                     << "ampl "<<item->fitModel[0]
-                     << "pos "<<item->fitModel[1]
-                     << "width "<<item->fitModel[2];
+                     << "ampl "  << fitModel[0]
+                     << "pos "   << fitModel[1]
+                     << "width " << fitModel[2];
         }
         catch (kipl::base::KiplException &e) {
             logger.error(e.what());
@@ -1098,17 +1081,18 @@ void NIQAMainWindow::fitEdgeProfiles()
         }
 
         msg.str("");
-        msg<<item->fitModel[0]<<", "<<item->fitModel[1]<<", "<<item->fitModel[2];
+        msg<<edgeInfoItem->fitModel[0]<<", "<<edgeInfoItem->fitModel[1]<<", "<<edgeInfoItem->fitModel[2];
         logger.message(msg.str());
 
-        item->distance=it->first;
-        item->FWHMpixels=FWHMconst*item->fitModel[2];
-        item->FWHMmetric=FWHMconst*config.edgeAnalysis2D.pixelSize*(item->fitModel[2]);
-        msg.str(""); msg<<"distance="<<(it->first)<<"mm, FWHM="<<item->FWHMmetric<<"mm ("<<item->FWHMpixels<<" pixels)";
-        item->setData(Qt::DisplayRole,QString::fromStdString(msg.str()));
+        edgeInfoItem->distance=edgeItem.first;
+        edgeInfoItem->FWHMpixels=FWHMconst*edgeInfoItem->fitModel[2];
+        edgeInfoItem->FWHMmetric=FWHMconst*config.edgeAnalysis2D.pixelSize*(edgeInfoItem->fitModel[2]);
+        msg.str(""); msg<<"distance="<<(edgeItem.first)<<"mm, FWHM="<<edgeInfoItem->FWHMmetric<<"mm ("<<edgeInfoItem->FWHMpixels<<" pixels)";
+        edgeInfoItem->setData(Qt::DisplayRole,QString::fromStdString(msg.str()));
 
-        ui->listWidget_edgeInfo->addItem(item);
+        ui->listWidget_edgeInfo->addItem(edgeInfoItem);
     }
+
     qDebug() << " list count"<< ui->listWidget_edgeInfo->count();
 
 }
@@ -1185,6 +1169,65 @@ void NIQAMainWindow::fitEdgeProfile(TNT::Array1D<double> &dataX, TNT::Array1D<do
     msg<<"Fitted data to "<<fitFunction[0]<<", "<<fitFunction[1]<<", "<<fitFunction[2];
 
     logger.message(msg.str());
+}
+
+void NIQAMainWindow::estimateCollimation()
+{
+    size_t N=static_cast<size_t>(ui->listWidget_edgeInfo->count());
+
+    if (N < 3)
+    {
+        QMessageBox::warning(this,"Too few data points","The collimation estimate needs three or more edges to work. Please add more edge images.", QMessageBox::Ok);
+        return ;
+    }
+
+    arma::vec y(N);
+    arma::mat H(N,2);
+    arma::mat C(N,N,arma::fill::eye);
+    arma::vec param;
+
+    QLineSeries *series = new QLineSeries(); //Life time
+
+    const double eps=0.1;
+    for (size_t i=0; i<N; ++i)
+    {
+        auto item = dynamic_cast<EdgeInfoListItem *>(ui->listWidget_edgeInfo->item(i));
+
+        double distance = item->distance;
+        double width    = item->FWHMmetric;
+
+        y(i)   = width*width  ;
+        H(i,0) = 1.0 ;
+        H(i,1) = distance*distance;
+        C(i,i) = 1.0/(distance+eps);
+
+        qDebug() <<"Distance: "<<distance<<", Width: "<<width;
+        series->append(QPointF(distance,width));
+    }
+
+    series->setName("Measured");
+    ui->chart_collimation->setCurveData(0,series);
+    kipl::math::weightedLSFit(H,C,y,param);
+
+    double res = sqrt(param(0));
+    double LD  = 1.0/sqrt(param(1));
+    QString text;
+    QTextStream(&text) << "Intrinsic resolution:" << res << " L/D:" <<LD;
+    qDebug() << "param[0]:" << res << "param[1]:" <<LD;
+    ui->label_collimationFit->setText(text);
+
+    arma::vec fit=H*param;
+    QLineSeries *fit_series = new QLineSeries();
+    for (size_t i=0 ; i<N ; ++i) {
+        double distance = sqrt(H(i,1));
+        double width    = sqrt(fit(i));
+        fit_series->append(QPointF(distance,width));
+    }
+
+    fit_series->setName("Fitted");
+    ui->chart_collimation->setCurveData(1,fit_series);
+    ui->chart_collimation->setXLabel("Distance");
+    ui->chart_collimation->setYLabel("FWHM");
 }
 
 void NIQAMainWindow::plotEdgeProfiles()
