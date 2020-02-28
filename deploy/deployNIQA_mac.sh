@@ -3,6 +3,8 @@ QTPATH=$QTBINPATH/..
 DEST="$DIRECTORY/NIQA.app"
 REPOSPATH=$WORKSPACE
 
+GITVER=`git rev-parse --short HEAD`
+
 if [ ! -d "$DIRECTORY" ]; then
   mkdir $DIRECTORY
 fi
@@ -50,10 +52,11 @@ for f in `ls *.1.0.0.dylib`; do
 done
 cd ..
 
-if [ ! -d "./Resources" ]; then
-	mkdir ./Resources	
-fi
-cp ~/repos/tomography/trunk/src/NIQA/resources/* ./Resources
+# if [ ! -d "./Resources" ]; then
+# 	mkdir ./Resources	
+# fi
+
+# cp ~/repos/tomography/trunk/src/NIQA/resources/* ./Resources
 
 sed -i.bak s+com.yourcompany+ch.imagingscience+g $DEST/Contents/Info.plist
 echo "copy plugins"
@@ -164,3 +167,17 @@ install_name_tool -change /usr/lib/libz.1.dylib @executable_path/../Frameworks/l
 install_name_tool -change /usr/local/opt/hdf5/lib/libhdf5_hl.10.dylib  libhdf5_hl.10.dylib libhdf5_hl.10.dylib
 install_name_tool -change /usr/local/opt/szip/lib/libsz.2.dylib @executable_path/../Frameworks/libsz.2.dylib libhdf5_hl.10.dylib
 install_name_tool -change /usr/lib/libz.1.dylib @executable_path/../Frameworks/libz.1.dylib libhdf5_hl.10.dylib
+
+rm -rf /tmp/NIQA
+
+if [ ! -d "/tmp/NIQA" ]; then
+  mkdir /tmp/NIQA
+fi
+
+if [ ! -e "/tmp/NIQA/Applications" ]; then
+	ln -s /Applications /tmp/NIQA
+fi
+
+cp -r $DEST /tmp/NIQA
+
+hdiutil create -volname NIQA -srcfolder /tmp/NIQA -ov -format UDZO $DIRECTORY/NIQA_build-$GITVER-`date +%Y%m%d`.dmg
