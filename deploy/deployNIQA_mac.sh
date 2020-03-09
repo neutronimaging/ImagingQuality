@@ -86,7 +86,8 @@ if [ ! -d "./PlugIns/accessible" ]; then
 fi
 
 if [ ! -f "./PlugIns/accessible/libqtaccessiblewidgets.dylib" ]; then 
-	cp $QTPATH/plugins/accessible/libqtaccessiblewidgets.dylib $DEST/Contents/PlugIns/accessible/
+	if [ -f "$QTPATH/plugins/accessible/libqtaccessiblewidgets.dylib" ]; then 
+		cp $QTPATH/plugins/accessible/libqtaccessiblewidgets.dylib $DEST/Contents/PlugIns/accessible/
 fi
 
 pwd
