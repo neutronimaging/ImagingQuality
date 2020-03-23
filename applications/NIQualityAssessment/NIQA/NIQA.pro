@@ -92,14 +92,14 @@ LIBS += -lkipl -lQtAddons -lImagingAlgorithms -lImagingQAAlgorithms -lReaderConf
 INCLUDEPATH += $$PWD/../../../../imagingsuite/core/kipl/kipl/include
 DEPENDPATH += $$PWD/../../../../imagingsuite/core/kipl/kipl/include
 
-INCLUDEPATH += $$PWD/../../../../imagingsuite/gui/qt/QtModuleConfigure
-DEPENDPATH += $$PWD/../../../../imagingsuite/gui/qt/QtModuleConfigure
+INCLUDEPATH += $$PWD/../../../../imagingsuite/GUI/qt/QtModuleConfigure
+DEPENDPATH += $$PWD/../../../../imagingsuite/GUI/qt/QtModuleConfigure
 
-INCLUDEPATH += $$PWD/../../../../imagingsuite/gui/qt/QtImaging
-DEPENDPATH += $$PWD/../../../../imagingsuite/gui/qt/QtImaging
+INCLUDEPATH += $$PWD/../../../../imagingsuite/GUI/qt/QtImaging
+DEPENDPATH += $$PWD/../../../../imagingsuite/GUI/qt/QtImaging
 
-INCLUDEPATH += $$PWD/../../../../imagingsuite/gui/qt/QtAddons
-DEPENDPATH += $$PWD/../../../../imagingsuite/gui/qt/QtAddons
+INCLUDEPATH += $$PWD/../../../../imagingsuite/GUI/qt/QtAddons
+DEPENDPATH += $$PWD/../../../../imagingsuite/GUI/qt/QtAddons
 
 INCLUDEPATH += $$PWD/../../../../imagingsuite/frameworks/tomography/Framework/ReconFramework/include
 DEPENDPATH += $$PWD/../../../../imagingsuite/frameworks/tomography/Framework/ReconFramework/src
