@@ -270,14 +270,13 @@ void NIQAConfig::ParseContrastAnalysis(xmlTextReaderPtr reader)
                // for (auto it=strlist.begin(); it!=strlist.end(); ++it) {
                 for (size_t i=0; i<strlist.size(); i+=5)
                 {
-                    size_t temproi[4];
+
                     std::string lbl = strlist[i];
                     qDebug() << lbl.c_str();
-
-                    temproi[0] = std::stoi(strlist[i+1]);
-                    temproi[1] = std::stoi(strlist[i+2]);
-                    temproi[2] = std::stoi(strlist[i+3]);
-                    temproi[3] = std::stoi(strlist[i+4]);
+                    std::vector<size_t> temproi = { std::stoul(strlist[i+1]),
+                                                    std::stoul(strlist[i+2]),
+                                                    std::stoul(strlist[i+3]),
+                                                    std::stoul(strlist[i+4])};
                     kipl::base::RectROI roi(temproi,lbl);
                     contrastAnalysis.analysisROIs.push_back(roi);
                 }
@@ -527,14 +526,14 @@ void NIQAConfig::parseBallPackingAnalysis(xmlTextReaderPtr reader)
 
                 for (size_t i=0; i<strlist.size(); i+=5)
                 {
-                    size_t temproi[4];
                     std::string lbl = strlist[i];
                     qDebug() << lbl.c_str();
 
-                    temproi[0] = std::stoi(strlist[i+1]);
-                    temproi[1] = std::stoi(strlist[i+2]);
-                    temproi[2] = std::stoi(strlist[i+3]);
-                    temproi[3] = std::stoi(strlist[i+4]);
+                    std::vector<size_t> temproi = { std::stoul(strlist[i+1]),
+                                                    std::stoul(strlist[i+2]),
+                                                    std::stoul(strlist[i+3]),
+                                                    std::stoul(strlist[i+4])};
+
                     kipl::base::RectROI roi(temproi,lbl);
                     ballPackingAnalysis.analysisROIs.push_back(roi);
                 }

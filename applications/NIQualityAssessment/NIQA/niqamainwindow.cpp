@@ -118,9 +118,16 @@ void NIQAMainWindow::on_button_bigball_load_clicked()
 
     ImageReader reader;
 
-    try {
-        m_BigBall=reader.Read(loader,kipl::base::ImageFlipNone,kipl::base::ImageRotateNone,1.0f,nullptr);
-    } catch (const kipl::base::KiplException & e) {
+    try
+    {
+        m_BigBall=reader.Read(loader,
+                              kipl::base::ImageFlipNone,
+                              kipl::base::ImageRotateNone,
+                              1.0f,
+                              {});
+    }
+    catch (const kipl::base::KiplException & e)
+    {
         QMessageBox::warning(this,"File error","Failed to load the image data. Please, check that the correct file name was provided.");
         logger.warning(e.what());
         return;
@@ -167,7 +174,7 @@ void NIQAMainWindow::on_slider_bigball_slice_sliderMoved(int position)
 {
     QSignalBlocker blocker(ui->spin_bigball_slice);
 
-    ui->viewer_bigball->set_image(m_BigBall.GetLinePtr(0,position),m_BigBall.Dims());
+    ui->viewer_bigball->set_image(m_BigBall.GetLinePtr(0,position),m_BigBall.dims());
     ui->spin_bigball_slice->setValue(position);
 }
 
@@ -193,7 +200,11 @@ void NIQAMainWindow::on_button_contrast_load_clicked()
     qDebug() << msg.str().c_str();
     try
     {
-        m_Contrast=reader.Read(loader,kipl::base::ImageFlipNone,kipl::base::ImageRotateNone,1.0f,nullptr);
+        m_Contrast=reader.Read(loader,
+                               kipl::base::ImageFlipNone,
+                               kipl::base::ImageRotateNone,
+                               1.0f,
+                               {});
     }
     catch (ReaderException &e)
     {
@@ -207,14 +218,14 @@ void NIQAMainWindow::on_button_contrast_load_clicked()
     }
     qDebug() << "Image loaded"<< m_Contrast.Size(0) << m_Contrast.Size(1)<< m_Contrast.Size(2);
     ui->slider_contrast_images->setMinimum(0);
-    ui->slider_contrast_images->setMaximum(m_Contrast.Size(2)-1);
-    ui->slider_contrast_images->setValue((m_Contrast.Size(2)-1)/2);
+    ui->slider_contrast_images->setMaximum(static_cast<int>(m_Contrast.Size(2)-1));
+    ui->slider_contrast_images->setValue(static_cast<int>((m_Contrast.Size(2)-1)/2));
 
     ui->slider_contrast_images->setMinimum(0);
-    ui->spin_contrast_images->setMaximum(m_Contrast.Size(2)-1);
+    ui->spin_contrast_images->setMaximum(static_cast<int>(m_Contrast.Size(2)-1));
 
     qDebug() << "pre update";
-    on_slider_contrast_images_sliderMoved(m_Contrast.Size(2)/2);
+    on_slider_contrast_images_sliderMoved(static_cast<int>(m_Contrast.Size(2)/2));
 
 
     qDebug() << "pre analysis";
@@ -232,7 +243,7 @@ void NIQAMainWindow::on_slider_contrast_images_sliderMoved(int position)
 
     ui->spin_contrast_images->setValue(position);
 
-    ui->viewer_contrast->set_image(m_Contrast.GetLinePtr(0,position),m_Contrast.Dims());
+    ui->viewer_contrast->set_image(m_Contrast.GetLinePtr(0,position),m_Contrast.dims());
 
 }
 
@@ -462,14 +473,21 @@ void NIQAMainWindow::on_listEdgeFiles_clicked(const QModelIndex &index)
 
     ImageReader reader;
 
-    try {
-        img=reader.Read(item->filename.toStdString(),kipl::base::ImageFlipNone,kipl::base::ImageRotateNone,1.0f,nullptr);
-    } catch (const kipl::base::KiplException & e) {
+    try
+    {
+        img=reader.Read(item->filename.toStdString(),
+                        kipl::base::ImageFlipNone,
+                        kipl::base::ImageRotateNone,
+                        1.0f,
+                        {});
+    }
+    catch (const kipl::base::KiplException & e)
+    {
         QMessageBox::warning(this,"File error","Failed to load the image data. Please, check that the correct file name was provided.");
         logger.warning(e.what());
         return;
     }
-    ui->viewer_edgeimages->set_image(img.GetDataPtr(),img.Dims());
+    ui->viewer_edgeimages->set_image(img.GetDataPtr(),img.dims());
    // on_check_edge2dcrop_toggled(ui->check_edge2dcrop->isEnabled());
 
 }
@@ -481,16 +499,20 @@ void NIQAMainWindow::on_button_LoadPacking_clicked()
 
     ImageReader reader;
 
-    size_t crop[4];
-    size_t *pCrop = nullptr;
+    std::vector<size_t> crop;
 
-    if (ui->widget_roi3DBalls->isChecked()) {
+    if (ui->widget_roi3DBalls->isChecked())
+    {
         ui->widget_roi3DBalls->getROI(crop);
-        pCrop=crop;
     }
 
-    try {
-        m_BallAssembly=reader.Read(loader,kipl::base::ImageFlipNone,kipl::base::ImageRotateNone,1.0f,pCrop);
+    try
+    {
+        m_BallAssembly=reader.Read(loader,
+                                   kipl::base::ImageFlipNone,
+                                   kipl::base::ImageRotateNone,
+                                   1.0f,
+                                   crop);
     }
     catch (const ReaderException &e)
     {
@@ -507,8 +529,8 @@ void NIQAMainWindow::on_button_LoadPacking_clicked()
      QSignalBlocker blocker(ui->slider_PackingImages);
      ui->slider_PackingImages->setMinimum(0);
      ui->slider_PackingImages->setMaximum(static_cast<int>(m_BallAssembly.Size(2))-1);
-     ui->slider_PackingImages->setValue(m_BallAssembly.Size(2)/2);
-     on_slider_PackingImages_sliderMoved(m_BallAssembly.Size(2)/2);
+     ui->slider_PackingImages->setValue(static_cast<int>(m_BallAssembly.Size(2)/2));
+     on_slider_PackingImages_sliderMoved(static_cast<int>(m_BallAssembly.Size(2)/2));
      m_BallAssemblyProjection=kipl::math::BasicProjector<float>::project(m_BallAssembly,kipl::base::ImagePlaneXY);
      ui->widget_bundleroi->updateViewer();
 }
@@ -870,7 +892,7 @@ void NIQAMainWindow::on_slider_PackingImages_sliderMoved(int position)
     switch (ui->combo_PackingImage->currentIndex()) {
         case 0: ui->slider_PackingImages->setEnabled(true);
                 ui->viewer_Packing->set_image(m_BallAssembly.GetLinePtr(0,position),
-                                              m_BallAssembly.Dims());
+                                              m_BallAssembly.dims());
                 if (ui->widget_roi3DBalls->isChecked()) {
                     QRect roi;
                     ui->widget_roi3DBalls->getROI(roi);
@@ -882,26 +904,26 @@ void NIQAMainWindow::on_slider_PackingImages_sliderMoved(int position)
         case 1:
                 ui->slider_PackingImages->setEnabled(false);
                 ui->viewer_Packing->set_image(m_BallAssemblyProjection.GetDataPtr(),
-                                      m_BallAssemblyProjection.Dims());
+                                      m_BallAssemblyProjection.dims());
 
                 break;
         case 2: ui->slider_PackingImages->setEnabled(true);
                 ui->viewer_Packing->set_image(m_BallAssemblyAnalyzer.getMask().GetLinePtr(0,position),
-                                              m_BallAssemblyAnalyzer.getMask().Dims());
+                                              m_BallAssemblyAnalyzer.getMask().dims());
                 break;
         case 3:
                 {
                     ui->slider_PackingImages->setEnabled(true);
-                    kipl::base::TImage<float,2> slice(m_BallAssembly.Dims());
+                    kipl::base::TImage<float,2> slice(m_BallAssembly.dims());
                     int *pSlice=m_BallAssemblyAnalyzer.getLabels().GetLinePtr(0,position);
                     std::copy_n(pSlice,slice.Size(),slice.GetDataPtr());
-                    ui->viewer_Packing->set_image(slice.GetDataPtr(),slice.Dims());
+                    ui->viewer_Packing->set_image(slice.GetDataPtr(),slice.dims());
                     break;
                 }
         case 4:
                 ui->slider_PackingImages->setEnabled(true);
                 ui->viewer_Packing->set_image(m_BallAssemblyAnalyzer.getDist().GetLinePtr(0,position),
-                                                     m_BallAssemblyAnalyzer.getDist().Dims());
+                                                     m_BallAssemblyAnalyzer.getDist().dims());
                        break;
 
     }
@@ -947,14 +969,18 @@ void NIQAMainWindow::getEdge2Dprofiles()
 
     saveCurrent();
     ImageReader reader;
-    size_t crop[4];
-    ui->widget_roiEdge2D->getROI(crop);
+    std::vector<size_t> crop;
+
     m_Edges2D.clear();
     m_DEdges2D.clear();
 
     ImagingQAAlgorithms::ProfileExtractor pe;
 
-    size_t *pCrop= ui->widget_roiEdge2D->isChecked() ? crop : nullptr;
+
+
+    if (ui->widget_roiEdge2D->isChecked())
+        ui->widget_roiEdge2D->getROI(crop);
+
     std::map<float,float> pvec;
     for (int i=0; i<ui->listEdgeFiles->count(); ++i)
     {
@@ -965,7 +991,11 @@ void NIQAMainWindow::getEdge2Dprofiles()
 
         try
         {
-            img=reader.Read(item->filename.toStdString(),kipl::base::ImageFlipNone,kipl::base::ImageRotateNone,1.0f,pCrop);
+            img=reader.Read(item->filename.toStdString(),
+                            kipl::base::ImageFlipNone,
+                            kipl::base::ImageRotateNone,
+                            1.0f,
+                            crop);
         }
         catch (kipl::base::KiplException &e)
         {
