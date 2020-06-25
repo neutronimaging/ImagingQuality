@@ -1,7 +1,6 @@
 ﻿@echo ----------------- Deploy copy --------------
 set REPOS=%WORKSPACE%
-set DEST=%HOMEPATH%\niqa
-
+set DEST=%WORKSPACE%\deployed\niqa
 
 if not exist %DEST% mkdir %DEST%
 
