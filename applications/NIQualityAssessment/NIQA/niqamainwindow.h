@@ -106,6 +106,8 @@ private slots:
 
     void on_button_bigball_analyze_clicked();
 
+    void on_button_clearAllEdgeFiles_clicked();
+
 private:
     void showContrastBoxPlot();
     void showContrastHistogram();

@@ -1626,3 +1626,11 @@ void NIQAMainWindow::on_button_bigball_analyze_clicked()
     plot3DEdgeProfiles(ui->comboBox_bigball_plotinformation->currentIndex());
 
 }
+
+void NIQAMainWindow::on_button_clearAllEdgeFiles_clicked()
+{
+    while (ui->listEdgeFiles->count())
+    {
+        delete ui->listEdgeFiles->takeItem(0);
+    }
+}
