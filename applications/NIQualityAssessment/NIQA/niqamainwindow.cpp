@@ -1607,6 +1607,11 @@ void NIQAMainWindow::on_actionLogging_triggered()
 
 void NIQAMainWindow::on_button_bigball_analyze_clicked()
 {
+    if (m_BigBall.Size()==0)
+    {
+        QMessageBox::warning(this,"Data missing","Please load the data before analysis.");
+        return;
+    }
     m_BallAnalyzer.setImage(m_BigBall);
     float R=m_BallAnalyzer.getRadius();
 
