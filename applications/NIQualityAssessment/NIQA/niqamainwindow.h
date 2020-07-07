@@ -120,7 +120,7 @@ private:
     void estimateResolutions();
     void fitEdgeProfiles();
     void fitEdgeProfile(std::vector<float> &dataX, std::vector<float> &dataY, std::vector<float> &dataSig, Nonlinear::FitFunctionBase &fitFunction);
-    void fitEdgeProfile(TNT::Array1D<double> &dataX, TNT::Array1D<double> &dataY, TNT::Array1D<double> &dataSig, Nonlinear::FitFunctionBase &fitFunction);
+    void fitEdgeProfile(arma::vec &dataX, arma::vec &dataY, arma::vec &dataSig, Nonlinear::FitFunctionBase &fitFunction);
     void estimateCollimation();
     void plotEdgeProfiles();
     void plotPackingStatistics(std::map<float, kipl::math::Statistics> &roiStats);
