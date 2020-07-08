@@ -89,6 +89,7 @@ NIQAMainWindow::NIQAMainWindow(QWidget *parent) :
     ui->widget_roiEdge2D->setROIColor("red");
     ui->widget_roiEdge2D->setCheckable(true);
     ui->widget_roiEdge2D->setChecked(false);
+    ui->viewer_edgeimages->hold_annotations(true);
 
     ui->widget_openBeamReader->setLabel("Open beam mask");
     ui->widget_darkCurrentReader->setLabel("Dark current mask");
@@ -291,6 +292,7 @@ void NIQAMainWindow::showContrastBoxPlot()
         double slope=1.0;
         double intercept=0.0;
 
+        qDebug() <<"bits per pixel"<<m_Contrast.info.nBitsPerSample;
         if (ui->groupBox_contrast_intensityMapping->isChecked()==true)
         {
             if (ui->radioButton_contrast_scaling->isChecked()==true)
@@ -302,7 +304,13 @@ void NIQAMainWindow::showContrastBoxPlot()
             {
                 double a=ui->spin_contrast_intensity0->value();
                 double b=ui->spin_contrast_intensity1->value();
-                slope=(b-a)/65535;
+                switch (m_Contrast.info.nBitsPerSample)
+                {
+                case 8:
+                    slope=(b-a)/255; break;
+                case 16:
+                    slope=(b-a)/65535; break;
+                }
                 intercept=a;
             }
         }
@@ -326,7 +334,7 @@ void NIQAMainWindow::showContrastHistogram()
 
     double slope=1.0;
     double intercept=0.0;
-
+    qDebug() << "Hist bits per smaple"<<m_Contrast.info.nBitsPerSample;
     if (ui->groupBox_contrast_intensityMapping->isChecked()==true)
     {
         if (ui->radioButton_contrast_scaling->isChecked()==true)
@@ -338,7 +346,11 @@ void NIQAMainWindow::showContrastHistogram()
         {
             double a=ui->spin_contrast_intensity0->value();
             double b=ui->spin_contrast_intensity1->value();
-            slope=(b-a)/65535;
+            switch (m_Contrast.info.nBitsPerSample)
+            {
+                case 8: slope=(b-a)/255.0; break;
+                case 16: slope=(b-a)/65535.0; break;
+            }
             intercept=a;
         }
         for (auto & x : axis)
@@ -1129,9 +1141,9 @@ void NIQAMainWindow::fitEdgeProfiles()
 
 void NIQAMainWindow::fitEdgeProfile(std::vector<float> &dataX, std::vector<float> &dataY, std::vector<float> &dataSig, Nonlinear::FitFunctionBase &fitFunction)
 {
-    TNT::Array1D<double> x(dataX.size());
-    TNT::Array1D<double> y(dataY.size());
-    TNT::Array1D<double> sig(dataY.size());
+    arma::vec x(dataX.size());
+    arma::vec y(dataY.size());
+    arma::vec sig(dataY.size());
 
     for (size_t i=0; i<dataY.size(); ++i) {
         x[i]=dataX[i];
@@ -1146,22 +1158,26 @@ void NIQAMainWindow::fitEdgeProfile(std::vector<float> &dataX, std::vector<float
 
 }
 
-void NIQAMainWindow::fitEdgeProfile(TNT::Array1D<double> &dataX, TNT::Array1D<double> &dataY, TNT::Array1D<double> &dataSig, Nonlinear::FitFunctionBase &fitFunction)
+void NIQAMainWindow::fitEdgeProfile(arma::vec &dataX, arma::vec &dataY, arma::vec &dataSig, Nonlinear::FitFunctionBase &fitFunction)
 {
     std::ostringstream msg;
     Nonlinear::LevenbergMarquardt mrqfit(0.001,5000);
-    try {
-        double maxval=-std::numeric_limits<double>::max();
-        double minval=std::numeric_limits<double>::max();
+    try
+    {
+        double maxval = -std::numeric_limits<double>::max();
+        double minval = std::numeric_limits<double>::max();
         int maxpos=0;
         int minpos=0;
         int idx=0;
-        for (int i=0; i<dataY.dim1() ; ++i) {
-            if (maxval<dataY[i]) {
+        for (auto i=0; i<dataY.n_elem ; ++i)
+        {
+            if (maxval<dataY[i])
+            {
                 maxval=dataY[i];
                 maxpos=idx;
             }
-            if (dataY[i]< minval) {
+            if (dataY[i]< minval)
+            {
                 minval=dataY[i];
                 minpos=idx;
             }
@@ -1171,7 +1187,8 @@ void NIQAMainWindow::fitEdgeProfile(TNT::Array1D<double> &dataX, TNT::Array1D<do
         double halfmax=(maxval-minval)/2+minval;
         int HWHM=maxpos;
 
-        for (; HWHM<dataY.dim1(); ++HWHM) {
+        for (; HWHM<dataY.n_elem; ++HWHM)
+        {
             if (dataY[HWHM]<halfmax)
                 break;
         }
@@ -1179,18 +1196,21 @@ void NIQAMainWindow::fitEdgeProfile(TNT::Array1D<double> &dataX, TNT::Array1D<do
         fitFunction[1]=dataX[maxpos];
         fitFunction[2]=(dataX[HWHM]-dataX[maxpos])*2;
         double d=dataX[1]-dataX[0];
-        if (fitFunction[2]<d) {
+        if (fitFunction[2]<d)
+        {
             logger.warning("Could not find FWHM, using constant 3*dx");
             fitFunction[2]=3*d;
         }
         mrqfit.fit(dataX,dataY,dataSig,fitFunction);
 
     }
-    catch (kipl::base::KiplException &e) {
+    catch (kipl::base::KiplException &e)
+    {
         logger.error(e.what());
         return ;
     }
-    catch (std::exception &e) {
+    catch (std::exception &e)
+    {
         logger.message(msg.str());
         return ;
     }
@@ -1587,6 +1607,11 @@ void NIQAMainWindow::on_actionLogging_triggered()
 
 void NIQAMainWindow::on_button_bigball_analyze_clicked()
 {
+    if (m_BigBall.Size()==0)
+    {
+        QMessageBox::warning(this,"Data missing","Please load the data before analysis.");
+        return;
+    }
     m_BallAnalyzer.setImage(m_BigBall);
     float R=m_BallAnalyzer.getRadius();
 
@@ -1625,4 +1650,12 @@ void NIQAMainWindow::on_button_bigball_analyze_clicked()
 
     plot3DEdgeProfiles(ui->comboBox_bigball_plotinformation->currentIndex());
 
+}
+
+void NIQAMainWindow::on_button_clearAllEdgeFiles_clicked()
+{
+    while (ui->listEdgeFiles->count())
+    {
+        delete ui->listEdgeFiles->takeItem(0);
+    }
 }

@@ -269,8 +269,8 @@
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>379</width>
-               <height>203</height>
+               <width>348</width>
+               <height>186</height>
               </rect>
              </property>
              <layout class="QHBoxLayout" name="horizontalLayout_20">
@@ -363,6 +363,13 @@
                </size>
               </property>
              </spacer>
+            </item>
+            <item>
+             <widget class="QPushButton" name="button_clearAllEdgeFiles">
+              <property name="text">
+               <string>Clear all</string>
+              </property>
+             </widget>
             </item>
             <item>
              <widget class="QPushButton" name="button_deleteEdgeFile">
@@ -511,8 +518,8 @@
               <rect>
                <x>0</x>
                <y>0</y>
-               <width>558</width>
-               <height>137</height>
+               <width>529</width>
+               <height>104</height>
               </rect>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_18">
@@ -828,8 +835,8 @@
                 <rect>
                  <x>0</x>
                  <y>0</y>
-                 <width>378</width>
-                 <height>230</height>
+                 <width>350</width>
+                 <height>216</height>
                 </rect>
                </property>
                <layout class="QVBoxLayout" name="verticalLayout_22">
@@ -1131,8 +1138,8 @@
                    <rect>
                     <x>0</x>
                     <y>0</y>
-                    <width>383</width>
-                    <height>210</height>
+                    <width>350</width>
+                    <height>194</height>
                    </rect>
                   </property>
                   <layout class="QVBoxLayout" name="verticalLayout_23">
@@ -1364,7 +1371,7 @@
      <x>0</x>
      <y>0</y>
      <width>1172</width>
-     <height>21</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
