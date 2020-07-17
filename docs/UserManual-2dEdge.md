@@ -1,4 +1,3 @@
-[Return to table of contents](User-manual-NIQA)<br/>
 # Principles
 ## The slanted edge
 The Gd edge sample is used to measure the resolution based on the edge spread function. As you will see the edge is mounted slightly rotated. This is on purpose to allow sub pixel sampling of the edge shape. This is done by fitting a straight line to the image edge. This line is used to sample the edge profile over several lines and it can be done with sub pixel resolution. 
