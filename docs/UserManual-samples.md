@@ -13,6 +13,7 @@ Items | Description | Materials
 1 | USB pen-drive 32Gb | Electronics
 
 ## Sample Weights
+_Note_: The weights and volumes are calculated.
 
 ### Constrast sample
 Total sample weight:  78 g
