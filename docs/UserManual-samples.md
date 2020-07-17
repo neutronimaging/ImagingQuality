@@ -1,6 +1,5 @@
-[Return to table of contents](index.md)<br/>
 # The sample box
-![Sample box](figures/niqaSamples/IMG_0043.jpg)
+<img width="500" src="figures/niqaSamples/IMG_0043.jpg">
 
 ## Contents
 
