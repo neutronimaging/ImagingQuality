@@ -1,7 +1,7 @@
 # Table of contents
 * [Introduction](UserManual-introduction.md)
 * [Sample descriptions](UserManual-samples.md)
-* [Experiment guide](UserManuals-experiments.md)
+* [Experiment guide](UserManual-experiments.md)
 * Analysing the data
     * [Contrast sample analysis](UserManual-contrast.md)
     * [Edge sample analyses 2D](UserManual-2dEdge.md)
