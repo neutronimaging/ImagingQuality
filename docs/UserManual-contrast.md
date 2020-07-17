@@ -1,3 +1,3 @@
-[Return to table of contents](User-manual-NIQA)<br/>
+# Analysis of the constrast sample
 
-[[figures/niqaScreenShots/contrastScreen.png]]
+![](figures/niqaScreenShots/contrastScreen.png)
