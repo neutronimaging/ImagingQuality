@@ -1,4 +1,4 @@
-[Return to table of contents](User-manual-NIQA)<br/>
+[Return to table of contents](index.md)<br/>
 # The sample box
 ![Sample box](figures/niqaSamples/IMG_0043.jpg)
 
