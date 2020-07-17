@@ -1,15 +1,15 @@
 # Table of contents
 * [Introduction](UserManual-introduction.md)
 * [Sample descriptions](UserManual-samples.md)
-* [Experiment guide](https://github.com/neutronimaging/imagingsuite/wiki/User-manuals-NIQA-experiments)
+* [Experiment guide](UserManuals-experiments.md)
 * Analysing the data
-    * [Contrast sample analysis](https://github.com/neutronimaging/imagingsuite/wiki/User-manuals-NIQA-contrast)
-    * [Edge sample analyses 2D](https://github.com/neutronimaging/imagingsuite/wiki/User-manuals-NIQA-2dEdge)
-    * [Edge sample analysis 3D](https://github.com/neutronimaging/imagingsuite/wiki/User-manuals-NIQA-3dEdge)
-    * [Ball bundle analysis](https://github.com/neutronimaging/imagingsuite/wiki/User-manuals-NIQA-balls)
-    * [Reporting](https://github.com/neutronimaging/imagingsuite/wiki/User-manuals-NIQA-reporting)
-* [Test data](https://github.com/neutronimaging/imagingsuite/wiki/User-manuals-NIQA-testdata)
-* [Bugs and feature requests](https://github.com/neutronimaging/imagingsuite/wiki/User-manuals-NIQA-bugsFeatures)
+    * [Contrast sample analysis](UserManual-contrast.md)
+    * [Edge sample analyses 2D](UserManual-2dEdge.md)
+    * [Edge sample analysis 3D](UserManual-3dEdge.md)
+    * [Ball bundle analysis](UserManual-balls.md)
+    * [Reporting](UserManual-reporting.md)
+* [Test data](UserManual-testdata.md)
+* [Bugs and feature requests](UserManual-bugsFeatures.md)
 
 # Related publications
 If you use the results in a publication. The following publication should be cited: <br/>
