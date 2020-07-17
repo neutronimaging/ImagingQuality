@@ -1,6 +1,6 @@
 # Table of contents
-* [Introduction](UserManual-introduction)
-* [Sample descriptions](UserManual-samples)
+* [Introduction](UserManual-introduction.md)
+* [Sample descriptions](UserManual-samples.md)
 * [Experiment guide](https://github.com/neutronimaging/imagingsuite/wiki/User-manuals-NIQA-experiments)
 * Analysing the data
     * [Contrast sample analysis](https://github.com/neutronimaging/imagingsuite/wiki/User-manuals-NIQA-contrast)
