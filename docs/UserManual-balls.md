@@ -1,3 +1,2 @@
-[Return to table of contents](User-manual-NIQA)<br/>
-
+# Ball packing analysis
 ![](figures/niqaScreenShots/ballPackingScreen.png)
