@@ -15,7 +15,7 @@ Items | Description | Materials
 ## Sample Weights
 _Note_: The weights and volumes are calculated.
 
-### Constrast sample
+### Contrast sample
 Total sample weight:  78 g
 
 Material | Density | Volume | Weight	
