@@ -25,7 +25,7 @@
 #include <armadillo>
 #include <base/index2coord.h>
 
-#include <datasetbase.h>
+#include <fileset.h>
 #include <imagereader.h>
 #include <readerexception.h>
 #include <base/tprofile.h>
