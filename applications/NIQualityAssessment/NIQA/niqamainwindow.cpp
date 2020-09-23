@@ -25,7 +25,7 @@
 #include <armadillo>
 #include <base/index2coord.h>
 
-#include <datasetbase.h>
+#include <fileset.h>
 #include <imagereader.h>
 #include <readerexception.h>
 #include <base/tprofile.h>
@@ -1102,7 +1102,8 @@ void NIQAMainWindow::fitEdgeProfiles()
             fitModel[1]=maxpos;
             fitModel[2]=(HWHM-maxpos)*2;
 
-            if (fitModel[2]<2) {
+            if (fitModel[2]<2)
+            {
                 logger.warning("Could not find FWHM, using constant =10");
                 fitModel[2]=10.0;
             }
@@ -1113,8 +1114,14 @@ void NIQAMainWindow::fitEdgeProfiles()
                      << "pos "   << fitModel[1]
                      << "width " << fitModel[2];
         }
-        catch (kipl::base::KiplException &e) {
-            logger.error(e.what());
+        catch (kipl::base::KiplException &e)
+        {
+            msg.str("");
+            msg << e.what()<<"\nFitter failed"
+                     << "ampl "  << edgeInfoItem->fitModel[0]
+                     << "pos "   << edgeInfoItem->fitModel[1]
+                     << "width " << edgeInfoItem->fitModel[2];
+            logger.error(msg.str());
             return ;
         }
         catch (std::exception &e) {
