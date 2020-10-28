@@ -62,6 +62,7 @@ class EdgeInfoListItem : public QListWidgetItem
 public:
     EdgeInfoListItem();
     EdgeInfoListItem(const EdgeInfoListItem &item);
+    const EdgeInfoListItem & operator=(const EdgeInfoListItem &item);
     Nonlinear::SumOfGaussians fitModel;
     std::vector<float> edge;
     std::vector<float> dedge;
@@ -987,8 +988,7 @@ void NIQAMainWindow::getEdge2Dprofiles()
     m_DEdges2D.clear();
 
     ImagingQAAlgorithms::ProfileExtractor pe;
-
-
+    pe.setPrecision(1.0f);
 
     if (ui->widget_roiEdge2D->isChecked())
         ui->widget_roiEdge2D->getROI(crop);
@@ -1102,7 +1102,12 @@ void NIQAMainWindow::fitEdgeProfiles()
             fitModel[1]=maxpos;
             fitModel[2]=(HWHM-maxpos)*2;
 
-            if (fitModel[2]<2) {
+            qDebug() << "Fitter init"
+                     << "ampl "  << fitModel[0]
+                     << "pos "   << fitModel[1]
+                     << "width " << fitModel[2];
+            if (fitModel[2]<2)
+            {
                 logger.warning("Could not find FWHM, using constant =10");
                 fitModel[2]=10.0;
             }
@@ -1510,6 +1515,18 @@ EdgeInfoListItem::EdgeInfoListItem(const EdgeInfoListItem &item) :
 
 }
 
+const EdgeInfoListItem &EdgeInfoListItem::operator=(const EdgeInfoListItem &item)
+{
+    fitModel   = item.fitModel;
+    edge       = item.edge;
+    dedge      = item.dedge;
+    distance   = item.distance;
+    FWHMpixels = item.FWHMpixels;
+    FWHMmetric = item.FWHMmetric;
+
+    return *this;
+}
+
 void NIQAMainWindow::on_radioButton_contrast_interval_toggled(bool checked)
 {
     if (checked==true) {
@@ -1659,3 +1676,4 @@ void NIQAMainWindow::on_button_clearAllEdgeFiles_clicked()
         delete ui->listEdgeFiles->takeItem(0);
     }
 }
+
