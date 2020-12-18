@@ -63,7 +63,7 @@ public:
     EdgeInfoListItem();
     EdgeInfoListItem(const EdgeInfoListItem &item);
     const EdgeInfoListItem & operator=(const EdgeInfoListItem &item);
-    Nonlinear::SumOfGaussians fitModel;
+    Nonlinear::Gaussian fitModel;
     std::vector<float> edge;
     std::vector<float> dedge;
     float distance;
@@ -198,7 +198,7 @@ void NIQAMainWindow::on_button_contrast_load_clicked()
     ImageReader reader;
 
     msg<<loader.m_sFilemask<<loader.m_nFirst<<", "<<loader.m_nLast;
-    logger(logger.LogMessage,msg.str());
+    logger.message(msg.str());
     qDebug() << msg.str().c_str();
     try
     {
@@ -555,7 +555,7 @@ void NIQAMainWindow::on_button_AnalyzePacking_clicked()
     std::list<kipl::base::RectROI> roiList=ui->widget_bundleroi->getSelectedROIs();
 
     msg<<"Have "<<roiList.size()<<" ROIs";
-    logger(logger.LogMessage,msg.str());
+    logger.message(msg.str());
 
     if (roiList.empty())
         return ;
@@ -670,27 +670,30 @@ void NIQAMainWindow::loadCurrent()
     QString defaultsname=QString::fromStdString(dname);
     msg.str("");
     msg<<"The config file "<<(dir.exists(defaultsname)==true ? "exists." : "doesn't exist.");
-    logger(logger.LogMessage,msg.str());
+    logger.message(msg.str());
     bool bUseDefaults=true;
-    if (dir.exists(defaultsname)==true) { // is there a previous recon?
+    if (dir.exists(defaultsname)==true)
+    { // is there a previous recon?
         bUseDefaults=false;
 
-        try {
+        try
+        {
             config.loadConfigFile(dname.c_str(),"niqa");
             msg.str("");
             msg<<config.WriteXML();
             logger.message(msg.str());
         }
-        catch (kipl::base::KiplException &e) {
+        catch (kipl::base::KiplException &e)
+        {
             msg.str("");
             msg<<"Loading defaults failed :\n"<<e.what();
             logger(kipl::logging::Logger::LogError,msg.str());
         }
-        catch (std::exception &e) {
+        catch (std::exception &e)
+        {
             msg.str("");
             msg<<"Loading defaults failed :\n"<<e.what();
             logger(kipl::logging::Logger::LogError,msg.str());
-
         }
     }
 }
@@ -1042,9 +1045,10 @@ void NIQAMainWindow::fitEdgeProfiles()
     std::ostringstream msg;
     int item_idx=0;
 
-    const double FWHMconst=2*sqrt(log(2));
+    const double FWHMconst=2*sqrt(2*log(2));
     ui->listWidget_edgeInfo->clear();
-    for (auto & edgeItem :m_DEdges2D) {
+    for (auto & edgeItem :m_DEdges2D)
+    {
         ++item_idx;
         auto edge=edgeItem.second;
 
@@ -1067,8 +1071,8 @@ void NIQAMainWindow::fitEdgeProfiles()
 
         Nonlinear::LevenbergMarquardt mrqfit(0.001,5000);
         try {
-            double maxval=-std::numeric_limits<double>::max();
-            double minval=std::numeric_limits<double>::max();
+            double maxval = -std::numeric_limits<double>::max();
+            double minval = std::numeric_limits<double>::max();
             int maxpos=0;
             int minpos=0;
             int idx=0;
@@ -1098,9 +1102,10 @@ void NIQAMainWindow::fitEdgeProfiles()
 
             auto & fitModel = edgeInfoItem->fitModel;
 
-            fitModel[0]=maxval;
-            fitModel[1]=maxpos;
-            fitModel[2]=(HWHM-maxpos)*2;
+            fitModel[0] = maxval;
+            fitModel[1] = x[maxpos];
+            fitModel[2] = (x[HWHM]-x[maxpos]) * 2;
+            fitModel[3] = 0.0;
 
             qDebug() << "Fitter init"
                      << "ampl "  << fitModel[0]
@@ -1497,8 +1502,7 @@ void NIQAMainWindow::on_comboBox_edgePlotType_currentIndexChanged(int index)
     plotEdgeProfiles();
 }
 
-EdgeInfoListItem::EdgeInfoListItem() :
-    fitModel(1)
+EdgeInfoListItem::EdgeInfoListItem()
 {
 
 }
@@ -1657,12 +1661,12 @@ void NIQAMainWindow::on_button_bigball_analyze_clicked()
 
     m_edge3DDprofile.push_back(m_edge3DDprofile.back());
 
-    Nonlinear::SumOfGaussians sog;
+    Nonlinear::Gaussian gaussian;
     std::vector<float> sig;
 
-    fitEdgeProfile(m_edge3DDistance,m_edge3DDprofile,sig,sog);
+    fitEdgeProfile(m_edge3DDistance,m_edge3DDprofile,sig,gaussian);
     msg.str("");
-    msg<<sog[2]*2<<"pixels, "<<sog[2]*2*ui->dspin_bigball_pixelsize->value()<<" mm";
+    msg<<gaussian[2]*2 <<"pixels, "<<gaussian[2]*2*ui->dspin_bigball_pixelsize->value()<<" mm";
     ui->label_bigball_FWHM->setText(QString::fromStdString(msg.str()));
 
     plot3DEdgeProfiles(ui->comboBox_bigball_plotinformation->currentIndex());
