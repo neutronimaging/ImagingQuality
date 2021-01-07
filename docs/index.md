@@ -3,6 +3,7 @@
 * [Sample descriptions](UserManual-samples.md)
 * [Experiment guide](UserManual-experiments.md)
 * Analysing the data
+    * [Installation](UserManual-installation.md)
     * [Measure the pixel size](UserManual-pixelSize.md)
     * [Contrast sample analysis](UserManual-contrast.md)
     * [Edge sample analyses 2D](UserManual-2dEdge.md)
