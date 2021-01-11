@@ -1475,19 +1475,23 @@ void NIQAMainWindow::on_actionQuit_triggered()
 
 void NIQAMainWindow::on_pushButton_createReport_clicked()
 {
-    updateConfig();
-    saveCurrent();
-    ReportMaker report;
+    QMessageBox::warning(this,"Not implemented","The report generation is not implemented in this version of NIQA.");
 
-    //report.addContrastInfo(ui->chart_contrast,m_ContrastSampleAnalyzer.getStatistics());
-    std::map<double,double> edges;
+    return;
 
-    for (int i=0; i<ui->listWidget_edgeInfo->count(); ++i) {
-        EdgeInfoListItem *item=dynamic_cast<EdgeInfoListItem *>(ui->listWidget_edgeInfo->item(i));
-        edges.insert(std::make_pair(item->distance,item->FWHMmetric));
-    }
-   // report.addEdge2DInfo(ui->chart_2Dedges,ui->chart_collimation,edges);
-    report.makeReport(QString::fromStdString(config.userInformation.reportName),config);
+//    updateConfig();
+//    saveCurrent();
+//    ReportMaker report;
+
+//    //report.addContrastInfo(ui->chart_contrast,m_ContrastSampleAnalyzer.getStatistics());
+//    std::map<double,double> edges;
+
+//    for (int i=0; i<ui->listWidget_edgeInfo->count(); ++i) {
+//        EdgeInfoListItem *item=dynamic_cast<EdgeInfoListItem *>(ui->listWidget_edgeInfo->item(i));
+//        edges.insert(std::make_pair(item->distance,item->FWHMmetric));
+//    }
+//   // report.addEdge2DInfo(ui->chart_2Dedges,ui->chart_collimation,edges);
+//    report.makeReport(QString::fromStdString(config.userInformation.reportName),config);
 
 }
 
@@ -1579,17 +1583,17 @@ void NIQAMainWindow::on_actionAbout_triggered()
 
 void NIQAMainWindow::on_actionUser_manual_triggered()
 {
-    QUrl url=QUrl("https://github.com/neutronimaging/imagingsuite/wiki/User-manual-NIQA");
+    QUrl url=QUrl("https://neutronimaging.github.io/ImagingQuality/");
     if (!QDesktopServices::openUrl(url)) {
-        QMessageBox::critical(this,"Could not open user manual","NIQA could not open your web browser with the link https://github.com/neutronimaging/imagingsuite/wiki/User-manual-NIQA",QMessageBox::Ok);
+        QMessageBox::critical(this,"Could not open user manual","NIQA could not open your web browser with the link https://neutronimaging.github.io/ImagingQuality/",QMessageBox::Ok);
     }
 }
 
 void NIQAMainWindow::on_actionReport_a_bug_triggered()
 {
-    QUrl url=QUrl("https://github.com/neutronimaging/imagingsuite/issues");
+    QUrl url=QUrl("https://github.com/neutronimaging/ImagingQuality/issues");
     if (!QDesktopServices::openUrl(url)) {
-        QMessageBox::critical(this,"Could not open repository","MuhRec could not open your web browser with the link https://github.com/neutronimaging/tools/issues",QMessageBox::Ok);
+        QMessageBox::critical(this,"Could not open repository","NIQA could not open your web browser with the link https://github.com/neutronimaging/ImagingQuality/issues",QMessageBox::Ok);
     }
 }
 
