@@ -24,24 +24,24 @@ ReportMaker::ReportMaker() :
 
 void ReportMaker::makeReport(QString reportName, NIQAConfig &config)
 {
-   mConfig=config;
-   QPrinter printer(QPrinter::HighResolution);
-   printer.setOutputFormat(QPrinter::PdfFormat);
-   printer.setResolution(1200);
-   printer.setPaperSize(QPrinter::A4);
-   printer.setOutputFileName(reportName);
-   printer.setPageMargins(QMarginsF(10.0,10.0,10.0,10.0));
+//   mConfig=config;
+//   QPrinter printer(QPrinter::HighResolution);
+//   printer.setOutputFormat(QPrinter::PdfFormat);
+//   printer.setResolution(1200);
+//   printer.setPaperSize(QPrinter::A4);
+//   printer.setOutputFileName(reportName);
+//   printer.setPageMargins(QMarginsF(10.0,10.0,10.0,10.0));
 
-   doc.clear();
-   doc.setDefaultFont(QFont("Helvetica",10));
+//   doc.clear();
+//   doc.setDefaultFont(QFont("Helvetica",10));
 
-   makeInfoSection();
-   makeContrastSection(mConfig.contrastAnalysis.makeReport);
-   makeEdge2DSection(mConfig.edgeAnalysis2D.makeReport);
-   makeEdge3DSection(mConfig.edgeAnalysis3D.makeReport);
-   makeBallsSection(mConfig.ballPackingAnalysis.makeReport);
+//   makeInfoSection();
+//   makeContrastSection(mConfig.contrastAnalysis.makeReport);
+//   makeEdge2DSection(mConfig.edgeAnalysis2D.makeReport);
+//   makeEdge3DSection(mConfig.edgeAnalysis3D.makeReport);
+//   makeBallsSection(mConfig.ballPackingAnalysis.makeReport);
 
-   doc.print(&printer);
+//   doc.print(&printer);
 }
 
 void ReportMaker::addContrastInfo(QtCharts::QChartView *c, std::vector<kipl::math::Statistics> insets)
