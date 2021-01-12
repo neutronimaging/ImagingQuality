@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui charts svg
+QT       += core gui charts printsupport svg
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -54,6 +54,7 @@ unix {
 }
 
 win32 {
+    CONFIG += console
     contains(QMAKE_HOST.arch, x86_64):{
         QMAKE_LFLAGS += /MACHINE:X64
     }

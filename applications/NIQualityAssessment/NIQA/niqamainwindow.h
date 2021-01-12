@@ -4,7 +4,6 @@
 #include <QMainWindow>
 
 #include <map>
-#include <tnt.h>
 #include <base/timage.h>
 #include <logging/logger.h>
 

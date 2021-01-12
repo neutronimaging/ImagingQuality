@@ -1072,11 +1072,12 @@ void NIQAMainWindow::fitEdgeProfiles()
         Nonlinear::LevenbergMarquardt mrqfit(0.001,5000);
         try {
             double maxval = -std::numeric_limits<double>::max();
-            double minval = std::numeric_limits<double>::max();
+            double minval =  std::numeric_limits<double>::max();
             int maxpos=0;
             int minpos=0;
             int idx=0;
-            for (auto eitem : edge)
+
+            for (const auto & eitem : edge)
             {
                 if (maxval<eitem.second)
                 {
@@ -1092,21 +1093,23 @@ void NIQAMainWindow::fitEdgeProfiles()
             }
 
             double halfmax=(maxval-minval)/2+minval;
-            int HWHM=maxpos;
+            int HWHM=0;
 
-            for (; HWHM<y.n_rows; ++HWHM)
+            for (const auto & eitem : edge)
             {
-                if (y[HWHM]<halfmax)
+                if (halfmax < eitem.second)
                     break;
+                HWHM ++;
             }
 
             auto & fitModel = edgeInfoItem->fitModel;
 
             fitModel[0] = maxval;
             fitModel[1] = x[maxpos];
-            fitModel[2] = (x[HWHM]-x[maxpos]) * 2;
+            fitModel[2] = (x[maxpos] - x[HWHM]) * 2;
             fitModel[3] = 0.0;
 
+            qDebug() << edge.size()<< maxpos<< maxval<< minval << halfmax << HWHM ;
             qDebug() << "Fitter init"
                      << "ampl "  << fitModel[0]
                      << "pos "   << fitModel[1]
@@ -1123,12 +1126,21 @@ void NIQAMainWindow::fitEdgeProfiles()
                      << "pos "   << fitModel[1]
                      << "width " << fitModel[2];
         }
-        catch (kipl::base::KiplException &e) {
+        catch (kipl::base::KiplException &e)
+        {
             logger.error(e.what());
             return ;
         }
-        catch (std::exception &e) {
+        catch (std::exception &e)
+        {
+            msg.str("");
+            msg<<"Failed with an stl exception "<< e.what();
             logger.message(msg.str());
+            return ;
+        }
+        catch (...)
+        {
+            logger.message("An unknown exeption occurred.");
             return ;
         }
 
@@ -1139,7 +1151,9 @@ void NIQAMainWindow::fitEdgeProfiles()
         edgeInfoItem->distance=edgeItem.first;
         edgeInfoItem->FWHMpixels=FWHMconst*edgeInfoItem->fitModel[2];
         edgeInfoItem->FWHMmetric=FWHMconst*config.edgeAnalysis2D.pixelSize*(edgeInfoItem->fitModel[2]);
-        msg.str(""); msg<<"distance="<<(edgeItem.first)<<"mm, FWHM="<<edgeInfoItem->FWHMmetric<<"mm ("<<edgeInfoItem->FWHMpixels<<" pixels)";
+        msg.str("");
+        msg<<"distance="<<(edgeItem.first)<<"mm, FWHM="<<edgeInfoItem->FWHMmetric<<"mm ("<<edgeInfoItem->FWHMpixels<<" pixels)";
+        logger.message(msg.str());
         edgeInfoItem->setData(Qt::DisplayRole,QString::fromStdString(msg.str()));
 
         ui->listWidget_edgeInfo->addItem(edgeInfoItem);
