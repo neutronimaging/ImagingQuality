@@ -62,7 +62,8 @@ class EdgeInfoListItem : public QListWidgetItem
 public:
     EdgeInfoListItem();
     EdgeInfoListItem(const EdgeInfoListItem &item);
-    Nonlinear::SumOfGaussians fitModel;
+    const EdgeInfoListItem & operator=(const EdgeInfoListItem &item);
+    Nonlinear::Gaussian fitModel;
     std::vector<float> edge;
     std::vector<float> dedge;
     float distance;
@@ -197,7 +198,7 @@ void NIQAMainWindow::on_button_contrast_load_clicked()
     ImageReader reader;
 
     msg<<loader.m_sFilemask<<loader.m_nFirst<<", "<<loader.m_nLast;
-    logger(logger.LogMessage,msg.str());
+    logger.message(msg.str());
     qDebug() << msg.str().c_str();
     try
     {
@@ -554,7 +555,7 @@ void NIQAMainWindow::on_button_AnalyzePacking_clicked()
     std::list<kipl::base::RectROI> roiList=ui->widget_bundleroi->getSelectedROIs();
 
     msg<<"Have "<<roiList.size()<<" ROIs";
-    logger(logger.LogMessage,msg.str());
+    logger.message(msg.str());
 
     if (roiList.empty())
         return ;
@@ -669,27 +670,30 @@ void NIQAMainWindow::loadCurrent()
     QString defaultsname=QString::fromStdString(dname);
     msg.str("");
     msg<<"The config file "<<(dir.exists(defaultsname)==true ? "exists." : "doesn't exist.");
-    logger(logger.LogMessage,msg.str());
+    logger.message(msg.str());
     bool bUseDefaults=true;
-    if (dir.exists(defaultsname)==true) { // is there a previous recon?
+    if (dir.exists(defaultsname)==true)
+    { // is there a previous recon?
         bUseDefaults=false;
 
-        try {
+        try
+        {
             config.loadConfigFile(dname.c_str(),"niqa");
             msg.str("");
             msg<<config.WriteXML();
             logger.message(msg.str());
         }
-        catch (kipl::base::KiplException &e) {
+        catch (kipl::base::KiplException &e)
+        {
             msg.str("");
             msg<<"Loading defaults failed :\n"<<e.what();
             logger(kipl::logging::Logger::LogError,msg.str());
         }
-        catch (std::exception &e) {
+        catch (std::exception &e)
+        {
             msg.str("");
             msg<<"Loading defaults failed :\n"<<e.what();
             logger(kipl::logging::Logger::LogError,msg.str());
-
         }
     }
 }
@@ -987,8 +991,7 @@ void NIQAMainWindow::getEdge2Dprofiles()
     m_DEdges2D.clear();
 
     ImagingQAAlgorithms::ProfileExtractor pe;
-
-
+    pe.setPrecision(1.0f);
 
     if (ui->widget_roiEdge2D->isChecked())
         ui->widget_roiEdge2D->getROI(crop);
@@ -1042,9 +1045,10 @@ void NIQAMainWindow::fitEdgeProfiles()
     std::ostringstream msg;
     int item_idx=0;
 
-    const double FWHMconst=2*sqrt(log(2));
+    const double FWHMconst=2*sqrt(2*log(2));
     ui->listWidget_edgeInfo->clear();
-    for (auto & edgeItem :m_DEdges2D) {
+    for (auto & edgeItem :m_DEdges2D)
+    {
         ++item_idx;
         auto edge=edgeItem.second;
 
@@ -1067,12 +1071,13 @@ void NIQAMainWindow::fitEdgeProfiles()
 
         Nonlinear::LevenbergMarquardt mrqfit(0.001,5000);
         try {
-            double maxval=-std::numeric_limits<double>::max();
-            double minval=std::numeric_limits<double>::max();
+            double maxval = -std::numeric_limits<double>::max();
+            double minval =  std::numeric_limits<double>::max();
             int maxpos=0;
             int minpos=0;
             int idx=0;
-            for (auto eitem : edge)
+
+            for (const auto & eitem : edge)
             {
                 if (maxval<eitem.second)
                 {
@@ -1088,20 +1093,27 @@ void NIQAMainWindow::fitEdgeProfiles()
             }
 
             double halfmax=(maxval-minval)/2+minval;
-            int HWHM=maxpos;
+            int HWHM=0;
 
-            for (; HWHM<y.n_rows; ++HWHM)
+            for (const auto & eitem : edge)
             {
-                if (y[HWHM]<halfmax)
+                if (halfmax < eitem.second)
                     break;
+                HWHM ++;
             }
 
             auto & fitModel = edgeInfoItem->fitModel;
 
-            fitModel[0]=maxval;
-            fitModel[1]=maxpos;
-            fitModel[2]=(HWHM-maxpos)*2;
+            fitModel[0] = maxval;
+            fitModel[1] = x[maxpos];
+            fitModel[2] = (x[maxpos] - x[HWHM]) * 2;
+            fitModel[3] = 0.0;
 
+            qDebug() << edge.size()<< maxpos<< maxval<< minval << halfmax << HWHM ;
+            qDebug() << "Fitter init"
+                     << "ampl "  << fitModel[0]
+                     << "pos "   << fitModel[1]
+                     << "width " << fitModel[2];
             if (fitModel[2]<2)
             {
                 logger.warning("Could not find FWHM, using constant =10");
@@ -1116,16 +1128,19 @@ void NIQAMainWindow::fitEdgeProfiles()
         }
         catch (kipl::base::KiplException &e)
         {
-            msg.str("");
-            msg << e.what()<<"\nFitter failed"
-                     << "ampl "  << edgeInfoItem->fitModel[0]
-                     << "pos "   << edgeInfoItem->fitModel[1]
-                     << "width " << edgeInfoItem->fitModel[2];
-            logger.error(msg.str());
+            logger.error(e.what());
             return ;
         }
-        catch (std::exception &e) {
+        catch (std::exception &e)
+        {
+            msg.str("");
+            msg<<"Failed with an stl exception "<< e.what();
             logger.message(msg.str());
+            return ;
+        }
+        catch (...)
+        {
+            logger.message("An unknown exeption occurred.");
             return ;
         }
 
@@ -1136,7 +1151,9 @@ void NIQAMainWindow::fitEdgeProfiles()
         edgeInfoItem->distance=edgeItem.first;
         edgeInfoItem->FWHMpixels=FWHMconst*edgeInfoItem->fitModel[2];
         edgeInfoItem->FWHMmetric=FWHMconst*config.edgeAnalysis2D.pixelSize*(edgeInfoItem->fitModel[2]);
-        msg.str(""); msg<<"distance="<<(edgeItem.first)<<"mm, FWHM="<<edgeInfoItem->FWHMmetric<<"mm ("<<edgeInfoItem->FWHMpixels<<" pixels)";
+        msg.str("");
+        msg<<"distance="<<(edgeItem.first)<<"mm, FWHM="<<edgeInfoItem->FWHMmetric<<"mm ("<<edgeInfoItem->FWHMpixels<<" pixels)";
+        logger.message(msg.str());
         edgeInfoItem->setData(Qt::DisplayRole,QString::fromStdString(msg.str()));
 
         ui->listWidget_edgeInfo->addItem(edgeInfoItem);
@@ -1472,19 +1489,23 @@ void NIQAMainWindow::on_actionQuit_triggered()
 
 void NIQAMainWindow::on_pushButton_createReport_clicked()
 {
-    updateConfig();
-    saveCurrent();
-    ReportMaker report;
+    QMessageBox::warning(this,"Not implemented","The report generation is not implemented in this version of NIQA.");
 
-    //report.addContrastInfo(ui->chart_contrast,m_ContrastSampleAnalyzer.getStatistics());
-    std::map<double,double> edges;
+    return;
 
-    for (int i=0; i<ui->listWidget_edgeInfo->count(); ++i) {
-        EdgeInfoListItem *item=dynamic_cast<EdgeInfoListItem *>(ui->listWidget_edgeInfo->item(i));
-        edges.insert(std::make_pair(item->distance,item->FWHMmetric));
-    }
-   // report.addEdge2DInfo(ui->chart_2Dedges,ui->chart_collimation,edges);
-    report.makeReport(QString::fromStdString(config.userInformation.reportName),config);
+//    updateConfig();
+//    saveCurrent();
+//    ReportMaker report;
+
+//    //report.addContrastInfo(ui->chart_contrast,m_ContrastSampleAnalyzer.getStatistics());
+//    std::map<double,double> edges;
+
+//    for (int i=0; i<ui->listWidget_edgeInfo->count(); ++i) {
+//        EdgeInfoListItem *item=dynamic_cast<EdgeInfoListItem *>(ui->listWidget_edgeInfo->item(i));
+//        edges.insert(std::make_pair(item->distance,item->FWHMmetric));
+//    }
+//   // report.addEdge2DInfo(ui->chart_2Dedges,ui->chart_collimation,edges);
+//    report.makeReport(QString::fromStdString(config.userInformation.reportName),config);
 
 }
 
@@ -1499,8 +1520,7 @@ void NIQAMainWindow::on_comboBox_edgePlotType_currentIndexChanged(int index)
     plotEdgeProfiles();
 }
 
-EdgeInfoListItem::EdgeInfoListItem() :
-    fitModel(1)
+EdgeInfoListItem::EdgeInfoListItem()
 {
 
 }
@@ -1515,6 +1535,18 @@ EdgeInfoListItem::EdgeInfoListItem(const EdgeInfoListItem &item) :
     FWHMmetric(item.FWHMmetric)
 {
 
+}
+
+const EdgeInfoListItem &EdgeInfoListItem::operator=(const EdgeInfoListItem &item)
+{
+    fitModel   = item.fitModel;
+    edge       = item.edge;
+    dedge      = item.dedge;
+    distance   = item.distance;
+    FWHMpixels = item.FWHMpixels;
+    FWHMmetric = item.FWHMmetric;
+
+    return *this;
 }
 
 void NIQAMainWindow::on_radioButton_contrast_interval_toggled(bool checked)
@@ -1565,17 +1597,17 @@ void NIQAMainWindow::on_actionAbout_triggered()
 
 void NIQAMainWindow::on_actionUser_manual_triggered()
 {
-    QUrl url=QUrl("https://github.com/neutronimaging/imagingsuite/wiki/User-manual-NIQA");
+    QUrl url=QUrl("https://neutronimaging.github.io/ImagingQuality/");
     if (!QDesktopServices::openUrl(url)) {
-        QMessageBox::critical(this,"Could not open user manual","NIQA could not open your web browser with the link https://github.com/neutronimaging/imagingsuite/wiki/User-manual-NIQA",QMessageBox::Ok);
+        QMessageBox::critical(this,"Could not open user manual","NIQA could not open your web browser with the link https://neutronimaging.github.io/ImagingQuality/",QMessageBox::Ok);
     }
 }
 
 void NIQAMainWindow::on_actionReport_a_bug_triggered()
 {
-    QUrl url=QUrl("https://github.com/neutronimaging/imagingsuite/issues");
+    QUrl url=QUrl("https://github.com/neutronimaging/ImagingQuality/issues");
     if (!QDesktopServices::openUrl(url)) {
-        QMessageBox::critical(this,"Could not open repository","MuhRec could not open your web browser with the link https://github.com/neutronimaging/tools/issues",QMessageBox::Ok);
+        QMessageBox::critical(this,"Could not open repository","NIQA could not open your web browser with the link https://github.com/neutronimaging/ImagingQuality/issues",QMessageBox::Ok);
     }
 }
 
@@ -1647,12 +1679,12 @@ void NIQAMainWindow::on_button_bigball_analyze_clicked()
 
     m_edge3DDprofile.push_back(m_edge3DDprofile.back());
 
-    Nonlinear::SumOfGaussians sog;
+    Nonlinear::Gaussian gaussian;
     std::vector<float> sig;
 
-    fitEdgeProfile(m_edge3DDistance,m_edge3DDprofile,sig,sog);
+    fitEdgeProfile(m_edge3DDistance,m_edge3DDprofile,sig,gaussian);
     msg.str("");
-    msg<<sog[2]*2<<"pixels, "<<sog[2]*2*ui->dspin_bigball_pixelsize->value()<<" mm";
+    msg<<gaussian[2]*2 <<"pixels, "<<gaussian[2]*2*ui->dspin_bigball_pixelsize->value()<<" mm";
     ui->label_bigball_FWHM->setText(QString::fromStdString(msg.str()));
 
     plot3DEdgeProfiles(ui->comboBox_bigball_plotinformation->currentIndex());
@@ -1666,3 +1698,4 @@ void NIQAMainWindow::on_button_clearAllEdgeFiles_clicked()
         delete ui->listEdgeFiles->takeItem(0);
     }
 }
+

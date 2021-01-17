@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui charts printsupport svg
+QT       += core gui charts svg # printsupport
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -24,6 +24,7 @@ else:CONFIG(debug, debug|release): DESTDIR = $$PWD/../../../../Applications/debu
 # depend on your compiler). Please consult the documentation of the
 # deprecated API in order to know how to port your code away from it.
 DEFINES += QT_DEPRECATED_WARNINGS
+DEFINES += QT_NO_PRINTER
 
 # You can also make your code fail to compile if you use deprecated APIs.
 # In order to do so, uncomment the following line.
@@ -54,13 +55,16 @@ unix {
 }
 
 win32 {
+    CONFIG += console
     contains(QMAKE_HOST.arch, x86_64):{
         QMAKE_LFLAGS += /MACHINE:X64
     }
     INCLUDEPATH += $$PWD/../../../../imagingsuite/external/src/linalg $$PWD/../../../../imagingsuite/external/include $$PWD/../../../../imagingsuite/external/include/cfitsio $$PWD/../../../../imagingsuite/external/include/libxml2
+    QMAKE_LIBDIR += $$PWD/../../../../ExternalDependencies/windows/lib
     QMAKE_LIBDIR += $$_PRO_FILE_PWD_/../../../../imagingsuite/external/lib64
 
-    LIBS += -llibxml2_dll -llibtiff -lcfitsio -llibblas -lliblapack
+    LIBS += -llibxml2_dll -llibtiff -lcfitsio
+    LIBS += -llibopenblas
     QMAKE_CXXFLAGS += /openmp /O2
 }
 

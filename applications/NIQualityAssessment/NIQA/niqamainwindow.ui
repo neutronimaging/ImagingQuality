@@ -94,7 +94,7 @@
                <property name="minimumSize">
                 <size>
                  <width>0</width>
-                 <height>125</height>
+                 <height>145</height>
                 </size>
                </property>
               </widget>
@@ -558,7 +558,7 @@
            </size>
           </property>
           <property name="currentIndex">
-           <number>0</number>
+           <number>1</number>
           </property>
           <widget class="QWidget" name="tab_preview">
            <attribute name="title">
@@ -1015,7 +1015,7 @@
                  <property name="minimumSize">
                   <size>
                    <width>0</width>
-                   <height>125</height>
+                   <height>150</height>
                   </size>
                  </property>
                 </widget>
@@ -1455,15 +1455,6 @@
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
   <customwidget>
-   <class>QtAddons::uxROIWidget</class>
-   <extends>QWidget</extends>
-   <header>uxroiwidget.h</header>
-   <container>1</container>
-   <slots>
-    <signal>valueChanged(int,int,int,int)</signal>
-   </slots>
-  </customwidget>
-  <customwidget>
    <class>QtAddons::ImageViewerWidget</class>
    <extends>QWidget</extends>
    <header location="global">imageviewerwidget.h</header>
@@ -1473,10 +1464,13 @@
    </slots>
   </customwidget>
   <customwidget>
-   <class>ReaderForm</class>
+   <class>QtAddons::uxROIWidget</class>
    <extends>QWidget</extends>
-   <header location="global">../../../core/modules/ReaderGUI/readerform.h</header>
+   <header location="global">uxroiwidget.h</header>
    <container>1</container>
+   <slots>
+    <signal>valueChanged(int,int,int,int)</signal>
+   </slots>
   </customwidget>
   <customwidget>
    <class>QtAddons::ROIManager</class>
@@ -1485,15 +1479,21 @@
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>SingleFileForm</class>
+   <class>ReaderForm</class>
    <extends>QWidget</extends>
-   <header location="global">singlefileform.h</header>
+   <header location="global">readerform.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>QtAddons::PlotWidget</class>
    <extends>QWidget</extends>
    <header location="global">plotwidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>SingleFileForm</class>
+   <extends>QWidget</extends>
+   <header location="global">singlefileform.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
