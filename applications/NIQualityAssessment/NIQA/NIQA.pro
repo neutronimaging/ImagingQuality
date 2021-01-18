@@ -50,8 +50,6 @@ unix {
     }
 
     LIBS += -ltiff -lxml2 -larmadillo -llapack
-
-    INCLUDEPATH += $$PWD/../../../../imagingsuite/external/src/linalg
 }
 
 win32 {
@@ -59,7 +57,7 @@ win32 {
     contains(QMAKE_HOST.arch, x86_64):{
         QMAKE_LFLAGS += /MACHINE:X64
     }
-    INCLUDEPATH += $$PWD/../../../../imagingsuite/external/src/linalg $$PWD/../../../../imagingsuite/external/include $$PWD/../../../../imagingsuite/external/include/cfitsio $$PWD/../../../../imagingsuite/external/include/libxml2
+    INCLUDEPATH  += $$PWD/../../../../imagingsuite/external/include $$PWD/../../../../imagingsuite/external/include/cfitsio $$PWD/../../../../imagingsuite/external/include/libxml2
     QMAKE_LIBDIR += $$PWD/../../../../ExternalDependencies/windows/lib
     QMAKE_LIBDIR += $$_PRO_FILE_PWD_/../../../../imagingsuite/external/lib64
 
