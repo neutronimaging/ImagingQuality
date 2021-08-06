@@ -22,6 +22,8 @@
 #include <QBoxPlotSeries>
 #include <QFileDialog>
 #include <QDir>
+#include <QDebug>
+
 #include <armadillo>
 #include <base/index2coord.h>
 
