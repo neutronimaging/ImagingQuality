@@ -603,7 +603,7 @@ std::string NIQAConfig::UserInformation::WriteXML(size_t indent)
     using namespace std;
     ostringstream str;
 
-    str<<setw(indent)  <<" "<<"<userinformation>"<<endl;
+    str<<setw(indent)  <<" "<<"<userinformation>"<<std::endl;
         str<<setw(indent+4)  <<" "<<"<operator>"<<userName<<"</operator>\n";
         str<<setw(indent+4)  <<" "<<"<institute>"<<institute<<"</institute>\n";
         str<<setw(indent+4)  <<" "<<"<instrument>"<<instrument<<"</instrument>\n";
@@ -614,7 +614,7 @@ std::string NIQAConfig::UserInformation::WriteXML(size_t indent)
         str<<setw(indent+4)  <<" "<<"<comment>"<<comment<<"</comment>\n";
         str<<setw(indent+4)  <<" "<<"<reportname>"<<reportName<<"</reportname>\n";
 
-    str<<setw(indent)  <<" "<<"</userinformation>"<<endl;
+    str<<setw(indent)  <<" "<<"</userinformation>"<<std::endl;
 
     return str.str();
 }
