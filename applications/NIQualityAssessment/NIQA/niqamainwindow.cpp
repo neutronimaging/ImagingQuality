@@ -23,6 +23,7 @@
 #include <QFileDialog>
 #include <QDir>
 #include <QDebug>
+
 #include <armadillo>
 #include <base/index2coord.h>
 
@@ -1194,7 +1195,7 @@ void NIQAMainWindow::fitEdgeProfile(arma::vec &dataX, arma::vec &dataY, arma::ve
         int maxpos=0;
         int minpos=0;
         int idx=0;
-        for (auto i=0; i<dataY.n_elem ; ++i)
+        for (size_t i=0; i<dataY.n_elem ; ++i)
         {
             if (maxval<dataY[i])
             {
@@ -1210,7 +1211,7 @@ void NIQAMainWindow::fitEdgeProfile(arma::vec &dataX, arma::vec &dataY, arma::ve
         }
 
         double halfmax=(maxval-minval)/2+minval;
-        int HWHM=maxpos;
+        size_t HWHM=maxpos;
 
         for (; HWHM<dataY.n_elem; ++HWHM)
         {
@@ -1263,7 +1264,7 @@ void NIQAMainWindow::estimateCollimation()
 
     QLineSeries *series = new QLineSeries(); //Life time
 
-    const double eps=0.1;
+    const double eps=0.01;
     for (size_t i=0; i<N; ++i)
     {
         auto item = dynamic_cast<EdgeInfoListItem *>(ui->listWidget_edgeInfo->item(i));

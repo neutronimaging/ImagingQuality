@@ -50,8 +50,6 @@ unix {
     }
 
     LIBS += -ltiff -lxml2 -larmadillo -llapack
-
-    INCLUDEPATH += $$PWD/../../../../imagingsuite/external/src/linalg
 }
 
 win32 {
