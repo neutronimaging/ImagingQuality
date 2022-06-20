@@ -44,20 +44,20 @@ void ReportMaker::makeReport(QString reportName, NIQAConfig &config)
 //   doc.print(&printer);
 }
 
-void ReportMaker::addContrastInfo(QtCharts::QChartView *c, std::vector<kipl::math::Statistics> insets)
+void ReportMaker::addContrastInfo(QChartView *c, std::vector<kipl::math::Statistics> insets)
 {
     contrast_plot=c;
     contrast_insets=insets;
 }
 
-void ReportMaker::addEdge2DInfo(QtCharts::QChartView *c, QtCharts::QChartView *d,std::map<double,double> edges)
+void ReportMaker::addEdge2DInfo(QChartView *c, QChartView *d,std::map<double,double> edges)
 {
     edge2d_edgeplots=c;
     edge2d_collimation=d;
     edge2d_edges=edges;
 }
 
-void ReportMaker::addEdge3DInfo(QtCharts::QChartView *c, double FWHM, double radius)
+void ReportMaker::addEdge3DInfo(QChartView *c, double FWHM, double radius)
 {
     edge3d_edgeplot=c;
     edge3d_FWHM=FWHM;
@@ -194,7 +194,7 @@ void ReportMaker::makeBallsSection(bool active)
 
 }
 
-void ReportMaker::insertFigure(QtCharts::QChartView *cv, QString imgname, int width, bool nl)
+void ReportMaker::insertFigure(QChartView *cv, QString imgname, int width, bool nl)
 {
     QString svgfname=imgname;
     QSvgGenerator generator;

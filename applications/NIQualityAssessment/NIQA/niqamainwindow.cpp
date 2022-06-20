@@ -10,16 +10,16 @@
 #include <cmath>
 
 #include <QSignalBlocker>
-#include <QLineSeries>
+#include <QtCharts/QLineSeries>
 #include <QPointF>
-#include <QChart>
+#include <QtCharts/QChart>
 #include <QString>
 #include <QListWidgetItem>
 #include <QTableWidgetItem>
 #include <QDesktopServices>
 #include <QMessageBox>
-#include <QBoxSet>
-#include <QBoxPlotSeries>
+#include <QtCharts/QBoxSet>
+#include <QtCharts/QBoxPlotSeries>
 #include <QFileDialog>
 #include <QDir>
 #include <QDebug>
