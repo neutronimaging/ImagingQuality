@@ -85,7 +85,7 @@ NIQAMainWindow::NIQAMainWindow(QWidget *parent) :
 
     // Setup logging dialog
     logdlg->setModal(false);
-    kipl::logging::Logger::AddLogTarget(*logdlg);
+    kipl::logging::Logger::addLogTarget(dynamic_cast<kipl::logging::LogWriter *>(logdlg));
 
     ui->widget_roiEdge2D->setAllowUpdateImageDims(false);
     ui->widget_roiEdge2D->registerViewer(ui->viewer_edgeimages);
